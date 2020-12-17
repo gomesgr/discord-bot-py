@@ -19,9 +19,10 @@ class Handler:
 		if message_object.content.startswith(commands.PREFIX):
 			self.command = message_object.content
 			self.message_object = message_object
+			
+			# Para ser utilizada na comprehension
 			coin = ''.join(comm.separate(self.command))
-			print('dokjajif')
-			print(next(x for x in commands.CURRENCIES.keys() if x == coin))
+			
 			self.what_to_do = {
 				commands.LEAGUE_OPGG: self._opgg_get_rank,
 				commands.PING: self._ping_host,
@@ -59,14 +60,13 @@ class Handler:
 		await self.message_object.channel.send(embed=embed)
 
 	async def _currency_status(self):
-		print("eaeaeasesaeaseaes")
-		# comm = commands.Commands()
-		# coin = ''.join(comm.separate(self.command))
-		# commands.CURRENCIES.get(coin)
-		# command = comm.separate(self.command)
-		# command = ''.join(command)
-		# index = commands.CURRENCIES[command]
-		# currency = Currency()
-		# dolar = next(currency.fetch(index))
-		# await self.message_object.channel.send(f'Valor do {dolar}')
+		comm = commands.Commands()
+		coin = ''.join(comm.separate(self.command))
+		commands.CURRENCIES.get(coin)
+		command = comm.separate(self.command)
+		command = ''.join(command)
+		index = commands.CURRENCIES[command]
+		currency = Currency()
+		fin = next(currency.fetch(index))
+		await self.message_object.channel.send(f'Valor do {fin}')
 
