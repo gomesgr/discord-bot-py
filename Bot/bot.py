@@ -1,9 +1,14 @@
 import discord
 import logging
+import os
+
+from dotenv import load_dotenv
 
 from handler import Handler
 
-TKN = 'NjAxNTAwNjA1MzUzMjk1ODcz.XTDNFw.WyVwb15x62GhKoOEBYrAuuVdyOQ'
+load_dotenv('E:\\Dev\\Python\\Bot\\discord-bot-py\\.env')
+
+TKN = os.getenv('BOT_TOKEN')
 
 class MyClient(discord.Client):
 	async def on_ready(self):
