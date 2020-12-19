@@ -1,13 +1,14 @@
 import os
 from sys import path
 
-from discord import Embed
+from discord import (Embed, Colour)
 
 import commands
-from multiprocessing.dummy import Pool as ThreadPool
+from time import time
 
 path.insert(1, 'E:\\Dev\\Python\\Bot\\discord-bot-py\\web')
 
+import rank_crud
 from currency import Currency
 from selenium_lol import LookForRank
 
@@ -16,7 +17,6 @@ HOSTNAME = '1.1.1.1'
 class Handler:
 
 	def __init__(self, message_object):
-		print(message_object.content.startswith(commands.PREFIX))
 		if message_object.content.startswith(commands.PREFIX):
 			self.comm = commands.Commands()
 			self.message = message_object.content
@@ -52,17 +52,31 @@ class Handler:
 			string (str): A mensagem que será recebida para ser cortada neste método
 		"""
 		message_as_list = self.comm.separate(string)
-		print(f'GET RANK: {message_as_list}')
+		print(f'GET RANK: {message_as_list[1]}')
 		if message_as_list.pop(0) == commands.LEAGUE_OPGG:
-			username = '+'.join(message_as_list)
-			look_for = LookForRank(username)
-			rank = look_for.init()
-			await self.message_object.channel.send(f'Seu rank atual : "{rank}"')
+			username_for_crawl = '+'.join(message_as_list)
+			username_for_db = ' '.join(message_as_list)
+
+			pdao = rank_crud.PlayerDAO()
+			fetched_player = pdao.fetch(username_for_db)
+			
+			# Se o tempo entre a atualizadao dor rank for maior que 10 segundos
+			
+			if type(fetched_player) == type(None) or int((time() - fetched_player['created_at'])) >= 3600: 
+				look_for = LookForRank(username_for_crawl)
+				rank = look_for.init()
+				pl = rank_crud.Player(username_for_db, rank)
+				pdao.save(pl)
+				embed = self._get_embed('Seu rank atual', rank, Colour.dark_teal())
+				print(f'Criando/atualizando valor de {pl} No banco de dados')
+			else:
+				embed = self._get_embed('Seu rank atual', fetched_player['rank'], Colour.dark_teal())
+			await self.message_object.channel.send(embed=embed)
 	
 	async def _ping_host(self):
 		import random
 		rnd = random.randint(100, 1000)
-		embed = self._get_embed('Pyong li', f'Não quer dizer nada\n{rnd}ms')
+		embed = self._get_embed('Pyong li', f'Não quer dizer nada\n{rnd}ms', Colour.dark_purple())
 		await self.message_object.channel.send(embed=embed)
 
 	async def _currency_status(self):
@@ -77,7 +91,7 @@ class Handler:
 		await self.message_object.channel.send(f'Valor do {fin}')
 
 	def _get_embed(self, title, desc, color=Embed.Empty):
-		eb = Embed(color=color)
+		eb = Embed(colour=color)
 		eb.title = title
 		eb.description = desc
 		return eb

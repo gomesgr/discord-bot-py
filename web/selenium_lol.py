@@ -46,11 +46,11 @@ class LookForRank:
 	def find_rank(self, driver):
 		try:
 			tier_s = driver.find_element_by_xpath(TIER_SOLO)
-			return 'solo/duo: ' + self.names[tier_s.text.split()[0]] + ' ' + tier_s.text.split()[1]
+			return self.names[tier_s.text.split()[0]] + ' ' + tier_s.text.split()[1]
 		except NoSuchElementException:
 			try:
 				tier_f = driver.find_element_by_xpath(TIER_FLEX)
-				return 'flex: ' + self.names[tier_f.text.split()[0]] + ' ' + tier_f.text.split()[1]
+				return self.names[tier_f.text.split()[0]] + ' ' + tier_f.text.split()[1]
 			except NoSuchElementException:
 				return 'Sem elo'	
 

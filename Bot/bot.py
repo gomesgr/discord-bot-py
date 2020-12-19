@@ -1,13 +1,13 @@
 import discord
 import logging
-import os
+from os import getenv
 
 from dotenv import load_dotenv
 from handler import Handler
 
 load_dotenv('E:\\Dev\\Python\\Bot\\discord-bot-py\\.env')
 
-TKN = os.getenv('BOT_TOKEN')
+TKN = getenv('BOT_TOKEN')
 
 client = discord.Client()
 
