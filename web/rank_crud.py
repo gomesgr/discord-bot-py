@@ -6,7 +6,7 @@ from time import (sleep, time)
 load_dotenv('E:\\Dev\\Python\\Bot\\discord-bot-py\\.env')
 
 class Player:
-	def __init__(self, username, rank, created_at=time()):
+	def __init__(self, username, rank,  created_at=time()):
 		self._username = username
 		self._data = {
 			'rank': rank,
@@ -15,10 +15,9 @@ class Player:
 
 	def __str__(self):
 		return f'''
-		username: {self._username},
-		rank: {self.data.rank},
-		criado_em: {self.data.created_at}
-		'''
+username: {self._username},
+rank: {self._data['rank']},
+criado_em: {self._data['created_at']}'''
 
 class PlayerDAO:
 	CONFIGS = {

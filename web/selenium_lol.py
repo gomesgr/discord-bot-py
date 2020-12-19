@@ -8,6 +8,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+from discord import Colour
 
 # USER = 'splex'
 URL = 'https://br.op.gg/summoner/userName=?'
@@ -25,7 +26,14 @@ class LookForRank:
 	def __init__(self, user):
 		self.user = user
 		self.url = URL.replace('?', user)
-		self.names = {'Iron': 'Ferro', 'Silver': 'Prata', 'Platinum': 'Platina', 'Diamond': 'Diamante'}
+		self.names = {
+			'Iron': ('Ferro', Colour.light_gray()),
+			'Bronze': ('Bronze', Colour.blurple()),
+			'Silver': ('Prata', Colour.darker_gray()), 
+			'Gold': ('Ouro', Colour.gold()), 
+			'Platinum': ('Platina', Colour.teal()), 
+			'Diamond': ('Diamante', Colour.blue())
+		}
 
 	def init(self):
 		with webdriver.Chrome(options=chrome_options,
@@ -46,11 +54,16 @@ class LookForRank:
 	def find_rank(self, driver):
 		try:
 			tier_s = driver.find_element_by_xpath(TIER_SOLO)
-			return self.names[tier_s.text.split()[0]] + ' ' + tier_s.text.split()[1]
+			rank_name = tier_s.text.split()[0]
+			rank_number = tier_s.text.split()[1]
+			var =  self.names[rank_name][0] + ' ' + rank_number
+			return var
 		except NoSuchElementException:
 			try:
 				tier_f = driver.find_element_by_xpath(TIER_FLEX)
-				return self.names[tier_f.text.split()[0]] + ' ' + tier_f.text.split()[1]
+				rank_name = tier_f.text.split()[0]
+				rank_number = tier_f.text.split()[1]
+				return self.names[rank_name][0] + ' ' + rank_number
 			except NoSuchElementException:
 				return 'Sem elo'	
 

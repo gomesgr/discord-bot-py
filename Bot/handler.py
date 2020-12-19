@@ -52,7 +52,7 @@ class Handler:
 			string (str): A mensagem que será recebida para ser cortada neste método
 		"""
 		message_as_list = self.comm.separate(string)
-		print(f'GET RANK: {message_as_list[1]}')
+		print(f'GET RANK: {message_as_list[1:]}')
 		if message_as_list.pop(0) == commands.LEAGUE_OPGG:
 			username_for_crawl = '+'.join(message_as_list)
 			username_for_db = ' '.join(message_as_list)
@@ -61,16 +61,18 @@ class Handler:
 			fetched_player = pdao.fetch(username_for_db)
 			
 			# Se o tempo entre a atualizadao dor rank for maior que 10 segundos
-			
+			look_for = LookForRank(username_for_crawl)
 			if type(fetched_player) == type(None) or int((time() - fetched_player['created_at'])) >= 3600: 
-				look_for = LookForRank(username_for_crawl)
 				rank = look_for.init()
 				pl = rank_crud.Player(username_for_db, rank)
 				pdao.save(pl)
-				embed = self._get_embed('Seu rank atual', rank, Colour.dark_teal())
-				print(f'Criando/atualizando valor de {pl} No banco de dados')
+				embed = self._get_embed('Seu rank atual', rank)
+				
+				print('================================')
+				print(f'Criando/atualizando valor de {pl}', end='')
+				print('================================')
 			else:
-				embed = self._get_embed('Seu rank atual', fetched_player['rank'], Colour.dark_teal())
+				embed = self._get_embed('Seu rank atual', fetched_player['rank'])
 			await self.message_object.channel.send(embed=embed)
 	
 	async def _ping_host(self):
