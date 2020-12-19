@@ -25,6 +25,3 @@ class Commands:
 
 	def separate(self, command):
 		return command.split(' ')[1:]
-
-	def current_coin(currency):
-		pass

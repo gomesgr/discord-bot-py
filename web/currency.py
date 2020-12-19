@@ -16,7 +16,7 @@ class Currency:
 		req = Request(self.urls[index][0], headers=HEADERS)
 		content = str(urlopen(req).read())
 		pos = int(content.index(self.find) + len(self.find))
-		yield f'{self.urls[index][1]} = ' + str(content[pos-25: pos-19]).replace('\"', '')
+		return f'{self.urls[index][1]} = ' + str(content[pos-25: pos-19]).replace('\"', '')
 
 
 if __name__ == '__main__':

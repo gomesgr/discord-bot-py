@@ -41,7 +41,7 @@ class LookForRank:
 			except NoAlertPresentException:
 				print('Alert found!')
 			finally:
-				yield self.find_rank(driver)
+				return self.find_rank(driver)
 
 	def find_rank(self, driver):
 		try:

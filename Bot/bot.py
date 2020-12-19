@@ -3,19 +3,22 @@ import logging
 import os
 
 from dotenv import load_dotenv
-
 from handler import Handler
 
 load_dotenv('E:\\Dev\\Python\\Bot\\discord-bot-py\\.env')
 
 TKN = os.getenv('BOT_TOKEN')
 
-class MyClient(discord.Client):
-	async def on_ready(self):
-		await self.change_presence(activity=discord.Game(name='Jogo da Vida'))
-		print(f'Logado como {self.user}')
-	
-	async def on_message(self, message):
+client = discord.Client()
+
+@client.event
+async def on_ready():
+	await client.change_presence(activity=discord.Game(name='Jogo da Vida'))
+	print(f'Logado como {client.user}')
+
+@client.event
+async def on_message(message):
+	if not message.author.bot:
 		hnd = Handler(message)
 		await hnd.do()
 		
@@ -29,5 +32,4 @@ if __name__ == '__main__':
 	logger.addHandler(file)
 	# End of Logging
 
-	client = MyClient()
 	client.run(TKN)

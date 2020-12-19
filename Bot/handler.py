@@ -4,6 +4,7 @@ from sys import path
 from discord import Embed
 
 import commands
+from multiprocessing.dummy import Pool as ThreadPool
 
 path.insert(1, 'E:\\Dev\\Python\\Bot\\discord-bot-py\\web')
 
@@ -15,58 +16,69 @@ HOSTNAME = '1.1.1.1'
 class Handler:
 
 	def __init__(self, message_object):
-		comm = commands.Commands()
+		print(message_object.content.startswith(commands.PREFIX))
 		if message_object.content.startswith(commands.PREFIX):
-			self.command = message_object.content
+			self.comm = commands.Commands()
+			self.message = message_object.content
 			self.message_object = message_object
 			
 			# Para ser utilizada na comprehension
-			coin = ''.join(comm.separate(self.command))
-			
+			coin = ''.join(self.comm.separate(self.message))
+
 			self.what_to_do = {
 				commands.LEAGUE_OPGG: self._opgg_get_rank,
 				commands.PING: self._ping_host,
-				# Isso daqui é fantástico, mentes brilhantes, 4k QI btw
-				next((x for x in commands.CURRENCIES.keys() if x == coin)): self._currency_status
 			}
+
+			if coin in commands.CURRENCIES.keys():
+				self.what_to_do[next((x for x in commands.CURRENCIES.keys() if x == coin))] = self._currency_status
+
 		else:
 			raise Exception('Prefixo incorreto')
 
 	async def do(self):
-		var = self.command.split()
+		var = self.message.split()
 		
 		# Quando a lista da mensagem for maior que 2, passe o parametro para o metodo
 		if len(var) > 2:
-			await self.what_to_do[var[1]](self.command)
+			await self.what_to_do[var[1]](self.message)
 		else:
 			await self.what_to_do[var[1]]()
-
+	
 	async def _opgg_get_rank(self, string):
-		comm = commands.Commands()
-		message_as_list = comm.separate(string)
+		""" Método para retornar o rank de um jogador no league of legends
+
+		Args:
+			string (str): A mensagem que será recebida para ser cortada neste método
+		"""
+		message_as_list = self.comm.separate(string)
 		print(f'GET RANK: {message_as_list}')
 		if message_as_list.pop(0) == commands.LEAGUE_OPGG:
 			username = '+'.join(message_as_list)
 			look_for = LookForRank(username)
-			rank = next(look_for.init())
-		await self.message_object.channel.send(f'Seu rank atual : "{rank}"')
+			rank = look_for.init()
+			await self.message_object.channel.send(f'Seu rank atual : "{rank}"')
 	
 	async def _ping_host(self):
 		import random
 		rnd = random.randint(100, 1000)
-		embed = Embed(color=Embed.Empty)
-		embed.title = 'Pyong li'
-		embed.description = rnd
+		embed = self._get_embed('Pyong li', f'Não quer dizer nada\n{rnd}ms')
 		await self.message_object.channel.send(embed=embed)
 
 	async def _currency_status(self):
-		comm = commands.Commands()
-		coin = ''.join(comm.separate(self.command))
+		""" Método para retornar o valor da moeda diginada nas mensagens
+		"""		
+		coin = ''.join(self.comm.separate(self.message))
 		commands.CURRENCIES.get(coin)
-		command = comm.separate(self.command)
-		command = ''.join(command)
+		command = ''.join(self.comm.separate(self.message))
 		index = commands.CURRENCIES[command]
 		currency = Currency()
-		fin = next(currency.fetch(index))
+		fin = (currency.fetch(index))
 		await self.message_object.channel.send(f'Valor do {fin}')
+
+	def _get_embed(self, title, desc, color=Embed.Empty):
+		eb = Embed(color=color)
+		eb.title = title
+		eb.description = desc
+		return eb
 
