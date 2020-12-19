@@ -1,0 +1,4 @@
+urllib3==1.25.11
+selenium==3.141.0
+discord.py==1.5.1
+Pyrebase==3.0.27

@@ -5,6 +5,7 @@ Bot para o Discord utilizando Python
 * Selenium
 * Pyrebase
 * Dotenv
+* Discord.py
 
 ## Tecnologias utilizadas
 * ChromeDriver

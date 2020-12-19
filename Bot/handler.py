@@ -69,7 +69,7 @@ class Handler:
 				embed = self._get_embed('Seu rank atual', rank)
 				
 				print('================================')
-				print(f'Criando/atualizando valor de {pl}', end='')
+				print(f'Criando/atualizando valor de {pl}')
 				print('================================')
 			else:
 				embed = self._get_embed('Seu rank atual', fetched_player['rank'])
