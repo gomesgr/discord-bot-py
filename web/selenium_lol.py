@@ -32,7 +32,8 @@ class LookForRank:
 			'Silver': ('Prata', Colour.darker_gray()), 
 			'Gold': ('Ouro', Colour.gold()), 
 			'Platinum': ('Platina', Colour.teal()), 
-			'Diamond': ('Diamante', Colour.blue())
+			'Diamond': ('Diamante', Colour.blue()),
+			'Master': ('Mestre', Colour.dark_purple())
 		}
 
 	def init(self):
@@ -55,6 +56,8 @@ class LookForRank:
 		try:
 			tier_s = driver.find_element_by_xpath(TIER_SOLO)
 			rank_name = tier_s.text.split()[0]
+			if len(tier_s.text.split()) < 2:
+				return self.names[rank_name][0]
 			rank_number = tier_s.text.split()[1]
 			var =  self.names[rank_name][0] + ' ' + rank_number
 			return var
@@ -62,6 +65,8 @@ class LookForRank:
 			try:
 				tier_f = driver.find_element_by_xpath(TIER_FLEX)
 				rank_name = tier_f.text.split()[0]
+				if len(tier_f.text.split()) < 2:
+					return self.names[rank_name][0]
 				rank_number = tier_f.text.split()[1]
 				return self.names[rank_name][0] + ' ' + rank_number
 			except NoSuchElementException:

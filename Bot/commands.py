@@ -1,6 +1,9 @@
 # Constants
 LEAGUE_OPGG 		= '-opgg'
 PING 				= '-ping'
+EMBED_TEST			= '-eb'
+
+# Prefixo
 PREFIX				= '$kt'
 
 # Currency
@@ -19,7 +22,7 @@ CURRENCIES = {
 		}
 
 class Commands:
-	
+
 	def fetch_league_name(self, command):
 		return command.replace(LEAGUE_OPGG, '')
 

@@ -11,6 +11,8 @@ path.insert(1, 'E:\\Dev\\Python\\Bot\\discord-bot-py\\web')
 import rank_crud
 from currency import Currency
 from selenium_lol import LookForRank
+import selenium_lol_live_game
+import selenium_lol_stats
 
 HOSTNAME = '1.1.1.1'
 
@@ -67,12 +69,10 @@ class Handler:
 				pl = rank_crud.Player(username_for_db, rank)
 				pdao.save(pl)
 				embed = self._get_embed('Seu rank atual', rank)
-				
-				print('================================')
-				print(f'Criando/atualizando valor de {pl}')
-				print('================================')
+				embed = self._live_winrate(embed, username_for_crawl)
 			else:
 				embed = self._get_embed('Seu rank atual', fetched_player['rank'])
+				embed = self._live_winrate(embed, username_for_crawl)
 			await self.message_object.channel.send(embed=embed)
 	
 	async def _ping_host(self):
@@ -91,6 +91,14 @@ class Handler:
 		currency = Currency()
 		fin = (currency.fetch(index))
 		await self.message_object.channel.send(f'Valor do {fin}')
+
+	def _live_winrate(self, eb, username):
+		champions_live = selenium_lol_live_game.get_live_champions(username)
+		if (champions_live != None):
+			winrates_per_champ = selenium_lol_stats.fill_dict()
+			winrates_game = selenium_lol_stats.fill_winrates(winrates_per_champ, username)
+			eb.add_field(name='Partida ao vivo', value=f'Blue: {winrates_game[0]} Red: {winrates_game[1]}', inline=False)
+		return eb
 
 	def _get_embed(self, title, desc, color=Embed.Empty):
 		eb = Embed(colour=color)
