@@ -51,6 +51,8 @@ def fill_dict() -> dict:
 def remove_quote(word):
 	if '\'' in word:
 		return word.replace('\'', '')
+	if '.' in word:
+		return word.replace('.', '')
 	return word
 
 
