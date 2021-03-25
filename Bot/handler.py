@@ -110,9 +110,9 @@ class Handler:
 	
 	async def _send_message(self, content=None, embed=None):
 		if embed != None:
-			await self.ctx.channel.send(embed=embed)
+			await self.ctx.send(embed=embed)
 		if content != None:
-			await self.ctx.channel.send(content)
+			await self.ctx.send(content)
 
 if __name__ == '__main__':
 	pass
