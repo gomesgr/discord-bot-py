@@ -18,11 +18,13 @@ class DiscordClient(discord.Client):
 		super().__init__()
 		self.logger = logger
 
+
 	async def on_ready(self):
 		await client.change_presence(activity=discord.Game(name='Jogo da Vida'))
 		login_str = f'Logado como {client.user}'
 		self.logger.info(login_str)
 		print(login_str)
+
 
 	async def on_message(self, ctx):
 		if ctx.content.startswith(commands.PREFIX) and not ctx.author.bot:

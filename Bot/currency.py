@@ -40,8 +40,6 @@ class Currency:
         return df.head()
 
 
-
-
 if __name__ == '__main__':
     c = Currency()
     c.fetch_crypto()
