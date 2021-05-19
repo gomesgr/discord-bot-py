@@ -13,6 +13,9 @@ LIBRA = '-libra'
 DOLAR_AUSTRALIANO = '-dolara'
 DOLAR_CANADENSE = '-dolarc'
 
+# Crypto
+CRYPTO = '-cry'
+
 CURRENCIES = {
     DOLAR: 0,
     EURO: 1,

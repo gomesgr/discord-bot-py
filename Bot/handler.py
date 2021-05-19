@@ -15,13 +15,14 @@ class Handler:
 		self.what_to_do = {
 			commands.LEAGUE_OPGG: self._opgg_get_rank,
 			commands.PING: self._ping_host,
+			commands.CRYPTO: self._currency_crypto
 		}
 
 		# Received from discord message
 		coin = ''.join(self.comm.separate(self.message))
 
 		if coin in commands.CURRENCIES.keys():
-			self.what_to_do[next(x for x in commands.CURRENCIES.keys() if x == coin)] = self._currency_status
+			self.what_to_do[next(x for x in commands.CURRENCIES.keys() if x == coin)] = self._currency_status_fiat
 
 	
 	async def do(self):
@@ -45,7 +46,7 @@ class Handler:
 		await self._send_message(embed=embed)
 
 	
-	async def _currency_status(self):
+	async def _currency_status_fiat(self):
 		""" Method that returns the currency from the brazilian real """
 		coin = ''.join(self.comm.separate(self.message))
 		self.logger.info(f'Getting currency {coin}')
@@ -53,8 +54,15 @@ class Handler:
 		command = ''.join(self.comm.separate(self.message))
 		index = commands.CURRENCIES[command]
 		currency = Currency()
-		fin = (currency.fetch(index))
+		fin = (currency.fetch_fiat(index))
 		await self._send_message(f'Valor do {fin}')
+
+	
+	async def _currency_crypto(self):
+		self.logger.info(f'Getting crypto currency')
+		c = Currency()
+		df = c.fetch_crypto()
+		await self._send_message(df)
 
 
 	def _get_embed(self, title, desc, color=Embed.Empty):
