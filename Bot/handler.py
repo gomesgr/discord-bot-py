@@ -4,8 +4,6 @@ from discord import (Embed, Colour)
 import commands
 import find_rank
 
-HOSTNAME = '1.1.1.1'
-
 
 class Handler:
 	def __init__(self, ctx, logger):
@@ -25,6 +23,7 @@ class Handler:
 		if coin in commands.CURRENCIES.keys():
 			self.what_to_do[next(x for x in commands.CURRENCIES.keys() if x == coin)] = self._currency_status
 
+	
 	async def do(self):
 		var = self.message.split()
 		# When message's list is greater than 2 then pass the parameter as argument to the method
@@ -33,16 +32,19 @@ class Handler:
 		else:
 			await self.what_to_do[var[1]]()
 
+	
 	async def _opgg_get_rank(self, nickname):
 		rank = find_rank.find_rank(nickname)
 		await self._send_message(f'Seu ranque é {rank}')
 
+	
 	async def _ping_host(self):
 		from random import randint
 		rnd = randint(100, 1000)
 		embed = self._get_embed('Pyong li', f'Não quer dizer nada\n{rnd}ms', Colour.dark_purple())
 		await self._send_message(embed=embed)
 
+	
 	async def _currency_status(self):
 		""" Method that returns the currency from the brazilian real """
 		coin = ''.join(self.comm.separate(self.message))
@@ -54,11 +56,13 @@ class Handler:
 		fin = (currency.fetch(index))
 		await self._send_message(f'Valor do {fin}')
 
+
 	def _get_embed(self, title, desc, color=Embed.Empty):
 		eb = Embed(colour=color)
 		eb.title = title
 		eb.description = desc
 		return eb
+
 
 	async def _send_message(self, content=None, embed=None):
 		if embed is not None:

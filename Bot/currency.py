@@ -14,7 +14,7 @@ class Currency:
                      ]
         self.find = 'class="text-verde"'
 
-    def fetch(self, index):
+    def fetch_fiat(self, index):
         req = Request(self.urls[index][0], headers=HEADERS)
         content = str(urlopen(req).read())
         pos = int(content.index(self.find) + len(self.find))

@@ -33,7 +33,7 @@ if __name__ == '__main__':
 	# Logging
 	logger = logging.getLogger('discord')
 	logger.setLevel(logging.INFO)
-	file = logging.FileHandler(filename='.logs/bot.log', encoding='utf-8', mode='w')
+	file = logging.FileHandler(filename='Bot/.logs/bot.log', encoding='utf-8', mode='w')
 	file.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 	logger.addHandler(file)
 	# End of Logging
