@@ -20,6 +20,9 @@ Prefixo = **$kt**
 **-opgg [username]**
 > **[username]** = Seu nick no League of Legends
 
+**-cry** Retorna o valor das 5 mais bem posicionadas criptomoedas a partir
+> informações obtidas a partir do [link](https://coinmarketcap.com/pt-br/)
+
 ### Comandos para retornar o valor da moeda a partir do Real
 **-dolar** Retorna o valor do dólar
 
