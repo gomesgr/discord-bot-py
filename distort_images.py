@@ -1,8 +1,26 @@
-import numpy as np
-import imgaug as ia
-from imgaug import augmenters as iaa
-import cv2
 from urllib.request import urlopen, Request
+
+import os
+import cv2
+import imgaug as ia
+import numpy as np
+from imgaug import augmenters as iaa
+
+FOLDER = 'imgs/'
+
+
+def delete_images():
+	from glob import glob
+	from os import path, remove
+	files = glob(path.join(FOLDER, '*'))
+	for file in files:
+		remove(file)
+	os.rmdir(FOLDER)
+
+
+def write(image):
+	os.mkdir(FOLDER) if not os.path.exists(FOLDER) else False
+	cv2.imwrite(FOLDER + '/fim.jpg', image[0], [int(cv2.IMWRITE_JPEG_QUALITY), 200])
 
 
 class Distort:
@@ -54,23 +72,7 @@ class Distort:
 			)
 		], random_order=True)  # apply augmenters in random order
 
-		images_aug = seq.augment_images(images)
-		self.write(images_aug)
-
-	# return images_aug
-
-	def write(self, image):
-		# imageio.mimwrite('imgs/fim.tiff', image, format='TIFF')
-		print(image[0])
-		cv2.imwrite('imgs/fim.jpg', image[0], [int(cv2.IMWRITE_JPEG_QUALITY), 200])
-
-	def delete_images(self):
-		from glob import glob
-		from os import path, remove
-		dir = 'imgs/'
-		files = glob(path.join(dir, '*'))
-		for file in files:
-			remove(file)
+		write(seq.augment_images(images))
 
 
 if __name__ == '__main__':
