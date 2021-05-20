@@ -1,14 +1,16 @@
 import requests
+import urllib.request
 from bs4 import BeautifulSoup
 
 
 def find_rank(nickname):
 	nickname = '%20'.join(nickname.split(' '))
 	link = f'https://u.gg/lol/profile/br1/{nickname}'
+	print(link)
 	ranks = {'Iron': 'Ferro', 'Bronze': 'Bronze', 'Silver': 'Prata', 'Gold': 'Ouro', 'Platinum': 'Platina',
 	         'Diamond': 'Diamante', 'Master': 'Mestre', 'Grandmaster': 'Grão-Mestre', 'Challenger': 'Desafiante'}
 
-	bs = BeautifulSoup(requests.get(link).text, 'html.parser')
+	bs = BeautifulSoup(urllib.request.urlopen(link).read(), 'lxml')
 	full_content = bs.title(string=True)[0]
 	print(full_content)
 	spl = full_content.split(' ')
@@ -22,6 +24,7 @@ def find_rank(nickname):
 		if x.isnumeric():
 			rank.append(x)
 			break
+	print(rank)
 	return ' '.join(rank)
 
 
