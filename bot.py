@@ -4,6 +4,7 @@ from os import getenv
 
 from dotenv import load_dotenv
 from handler import Handler
+from typing import NoReturn
 
 import commands
 
@@ -16,18 +17,23 @@ class DiscordClient(discord.Client):
         super().__init__()
         self.logger = logger
 
-    async def on_ready(self):
+    async def on_ready(self) -> NoReturn:
         await self.change_presence(activity=discord.Streaming(name='Jogo da Vida',
                                                               platform='Twitch',
                                                               url='https://www.twitch.tv/themrhetch', ))
         login_str = f'Logado como {self.user}'
         self.logger.info(login_str)
         print(login_str)
+        # Latency between a HEARTBEAT and a HEARTBEAT_ACK in seconds.
+        # This could be referred to as the Discord Voice WebSocket
+        # latency and is an analogue of #user’s voice latencies as
+        # seen in the Discord client. (discord.py docs)
+        self.logger.info(f'Latency: {self.latency:.4f}s')
 
-    async def on_message(self, ctx: discord.Message):
-        if ctx.content.startswith(commands.PREFIX) and not ctx.author.bot:
+    async def on_message(self, message: discord.Message) -> NoReturn:
+        if message.content.startswith(commands.PREFIX) and not message.author.bot:
             self.logger.info('Initializing Handler object')
-            await Handler(ctx, self.logger, self).do()
+            await Handler(message, self.logger, self).do()
 
 
 if __name__ == '__main__':

@@ -1,5 +1,5 @@
-from urllib.request import urlopen, Request
-from pandas import read_html
+from urllib.request import (urlopen, Request)
+from pandas import (read_html, DataFrame)
 from re import split
 from commands import HEADERS
 
@@ -19,14 +19,14 @@ class Currency:
              'Dolar Canadense')]
         self.find = 'class="text-verde"'
 
-    def fetch_fiat(self, index):
+    def fetch_fiat(self, index: int) -> str:
         req = Request(self.urls[index][0], headers=HEADERS)
         content = str(urlopen(req).read())
         pos = int(content.index(self.find) + len(self.find))
         return f'{self.urls[index][1]} = ' + \
             str(content[pos - 25: pos - 19]).replace('\"', '')
 
-    def fetch_crypto(self):
+    def fetch_crypto(self) -> DataFrame:
         url = 'https://coinmarketcap.com/pt-br/'
         df = read_html(url)[0]
         df = df.drop('Unnamed: 0', axis=1)

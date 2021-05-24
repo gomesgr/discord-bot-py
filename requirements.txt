@@ -1,4 +1,6 @@
 discord.py==1.5.1
-numpy
-cv2
-imgaug
+pandas==1.2.4
+numpy==1.19.3
+opencv-python==4.5.2.52
+imgaug==0.4.0
+autopep8==1.5.7

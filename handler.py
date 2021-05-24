@@ -1,6 +1,8 @@
-from typing import NoReturn, Optional
+from typing import (NoReturn, Optional, List)
 
-from discord import (Embed, Colour, File)
+from datetime import datetime
+from logging import Logger
+from discord import (Embed, Colour, File, Client, Message)
 
 import commands
 import distort_images as di
@@ -9,11 +11,11 @@ from currency import Currency
 
 
 class Handler:
-    def __init__(self, ctx, logger, client):
-        self.message = ctx.content
-        self.ctx = ctx
-        self.logger = logger
-        self.client = client
+    def __init__(self, message, logger, client):
+        self.message_content: str = message.content
+        self.message: Message = message
+        self.logger: Logger = logger
+        self.client: Client = client
 
         self.what_to_do = {
             commands.LEAGUE_OPGG: self._opgg_get_rank,
@@ -24,8 +26,8 @@ class Handler:
         }
 
         # Received from discord message
-        command = ''.join(
-            commands.split_text_with_spaces_using_index(self.message, 1))
+        command: str = ''.join(
+            commands.split_text_with_spaces_using_index(self.message_content, 1))
         print(f'command {command}')
         """
 				Adds the typed coin from discord as key if it exists as a valid coin
@@ -43,11 +45,11 @@ class Handler:
                 Selects what has to be done in the bot by calling
                 The methods from what_to_do attribute
         """
-        var = self.message.split()
+        var: List[str] = self.message_content.split()
         # When message's list is greater than 2 then pass the parameter as
         # argument to the method
         if len(var) > 2:
-            await self.what_to_do[var[1]](' '.join(commands.split_text_with_spaces_using_index(self.message, 2)))
+            await self.what_to_do[var[1]](' '.join(commands.split_text_with_spaces_using_index(self.message_content, 2)))
         else:
             await self.what_to_do[var[1]]()
 
@@ -55,7 +57,7 @@ class Handler:
         """
                 Distorts the given image and displays it on current discord's text channel
         """
-        img = self.ctx.attachments[0].url
+        img: str = self.message.attachments[0].url
         print(f'Distorting ({img})')
         self.logger.info(f'Distorting image from discord: {img}')
         d = di.Distort(img)
@@ -81,7 +83,7 @@ class Handler:
 
     async def _opgg_get_rank(self, nickname: str) -> NoReturn:
         print(f'Looking for {nickname}')
-        rank = find_rank.find_rank(nickname)
+        rank: str = find_rank.find_rank(nickname)
         await self._send_message(f'Seu ranque é {rank}')
 
     async def _ping_host(self) -> NoReturn:
@@ -95,16 +97,15 @@ class Handler:
                 Method that returns the currency from the brazilian real
         """
         command = ''.join(
-            commands.split_text_with_spaces_using_index(self.message, 1))
+            commands.split_text_with_spaces_using_index(self.message_content, 1))
         self.logger.info(f'Getting currency {command}')
         commands.CURRENCIES.get(command)
-        index = commands.CURRENCIES[command]
+        index: int = commands.CURRENCIES[command]
         currency = Currency()
-        coin = (currency.fetch_fiat(index))
+        coin = currency.fetch_fiat(index)
         await self._send_message(f'Valor do {coin}')
 
     async def _currency_crypto(self) -> NoReturn:
-        from datetime import datetime
         self.logger.info(f'Getting crypto currency')
         c = Currency()
         df = c.fetch_crypto()
@@ -113,7 +114,6 @@ class Handler:
         e.title = 'Valor das Criptomoedas'
         e.set_author(name='CoinMarketCap',
                      url='https://coinmarketcap.com/pt-br/')
-
         for _, name, price in df.itertuples():
             e.add_field(name=name, value=price, inline=False)
 
@@ -123,14 +123,14 @@ class Handler:
     async def _send_message(self, content: Optional[str] = None, embed: Optional[Embed] = None,
                             file: Optional[File] = None) -> NoReturn:
         if file is not None:
-            await self.ctx.channel.send(file=file)
+            await self.message.channel.send(file=file)
         if embed is not None:
-            await self.ctx.channel.send(embed=embed)
+            await self.message.channel.send(embed=embed)
         elif content is not None:
-            await self.ctx.channel.send(content)
+            await self.message.channel.send(content)
 
-        self.logger.info(f'Message sent on {self.ctx.channel}')
-        print(f'Message sent on {self.ctx.channel}')
+        self.logger.info(f'Message sent on {self.message.channel}')
+        print(f'Message sent on {self.message.channel}')
 
 
 if __name__ == '__main__':
