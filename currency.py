@@ -1,7 +1,7 @@
 from urllib.request import (urlopen, Request)
 from pandas import (read_html, DataFrame)
 from re import split
-from commands import HEADERS
+from bot_constants import HEADERS
 
 
 class Currency:

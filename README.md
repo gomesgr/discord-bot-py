@@ -18,21 +18,17 @@ Bot geral para o Discord utilizando Python
 ---
 
 - **Prefixo** = `k`
-- **Exemplo** = `k ping`
+- **Exemplo** = `kping`
 
 ---
 
 ### Comandos disponíveis
 
-|   Comando   |  Parâmetro   |                                         Função                                          |
-| :---------: | :----------: | :-------------------------------------------------------------------------------------: |
-|   `ping`    |     `*`      |                               Retorna um número aleatório                               |
-|     `c`     |     `*`      |                       Mostra todos os comandos disponíveis do bot                       |
-|    `lol`    |  `username`  |                          Retorna o ranque de `username` no LoL                          |
-|    `cry`    |     `*`      | Retorna as cinco mais bem [posicionadas criptomoedas](https://coinmarketcap.com/pt-br/) |
-|   `dolar`   |     `*`      |                                Retorna o valor do dólar                                 |
-|   `euro`    |     `*`      |                                 Retorna o valor do euro                                 |
-|   `libra`   |     `*`      |                                Retorna o valor da libra                                 |
-|  `dolara`   |     `*`      |                          Retorna o valor do dólar australiano                           |
-|  `dolarc`   |     `*`      |                           Retorna o valor do dólar canadence                            |
-| `distorcer` | `image_file` |                    Distorce uma imagem passada pelo chat do Discord                     |
+|   Comando   |               Parâmetro                |                                         Função                                          |
+| :---------: | :------------------------------------: | :-------------------------------------------------------------------------------------: |
+|   `ping`    |                  `*`                   |                               Retorna um número aleatório                               |
+|     `c`     |                  `*`                   |                       Mostra todos os comandos disponíveis do bot                       |
+|    `lol`    |               `username`               |                          Retorna o ranque de `username` no LoL                          |
+|    `cry`    |                  `*`                   | Retorna as cinco mais bem [posicionadas criptomoedas](https://coinmarketcap.com/pt-br/) |
+|   `moeda`   | `[dolar, dolara, dolarc, libra, euro]` |               Retorna o valor de uma das moedas inseridas após o comando                |
+| `distorcer` |              `image_file`              |                    Distorce uma imagem passada pelo chat do Discord                     |

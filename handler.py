@@ -1,136 +1,88 @@
-from typing import (NoReturn, Optional, List)
+from typing import (Optional, List)
 
 from datetime import datetime
-from logging import Logger
 from discord import (Embed, Colour, File, Client, Message)
-
-import commands
+from logging import Logger
+import bot_constants
 import distort_images as di
 import find_rank
 from currency import Currency
 
 
-class Handler:
-    def __init__(self, message, logger, client):
-        self.message_content: str = message.content
-        self.message: Message = message
-        self.logger: Logger = logger
-        self.client: Client = client
+async def distort(ctx, logger: Optional[Logger]) -> Optional[None]:
+    """
+            Distorts the given image and displays it on current discord's text channel
+    """
+    img: str = ctx.message.attachments[0].url
+    print(f'Distorting ({img})')
+    d = di.Distort(img)
+    d.augment_images()
+    with open(di.FOLDER + '/fim.jpg', 'rb') as f:
+        send = File(f)
+        await send_message(ctx, logger, file=send)
+    di.delete_images()
+    print('Distortion done')
 
-        self.what_to_do = {
-            commands.LEAGUE_OPGG: self._opgg_get_rank,
-            commands.PING: self._ping_host,
-            commands.CRYPTO: self._currency_crypto,
-            commands.COMMANDS: self._get_commands,
-            commands.DISTORCER: self._distort
-        }
 
-        # Received from discord message
-        command: str = ''.join(
-            commands.split_text_with_spaces_using_index(self.message_content, 1))
-        print(f'command {command}')
-        """
-				Adds the typed coin from discord as key if it exists as a valid coin
-				and the `_currency_status_fiat` method as value to be called in
-				the `do` method inside the Handler class
-		"""
-        if command in commands.CURRENCIES.keys():
-            self.what_to_do[
-                next(x for x in commands.CURRENCIES.keys() if x == command)
-            ] = self._currency_status_fiat
+async def currency_status_fiat(ctx, moeda, logger: Optional[Logger]) -> Optional[None]:
+    """
+            Method that returns the currency from the brazilian real
+    """
+    bot_constants.CURRENCIES.get(moeda)
+    index: int = bot_constants.CURRENCIES[moeda]
+    currency = Currency()
+    coin = currency.fetch_fiat(index)
+    await send_message(ctx, logger, content=f'Valor do {coin}')
 
-    async def do(self) -> NoReturn:
-        """
-                The first method to be called besides __init__
-                Selects what has to be done in the bot by calling
-                The methods from what_to_do attribute
-        """
-        var: List[str] = self.message_content.split()
-        # When message's list is greater than 2 then pass the parameter as
-        # argument to the method
-        if len(var) > 2:
-            await self.what_to_do[var[1]](' '.join(commands.split_text_with_spaces_using_index(self.message_content, 2)))
-        else:
-            await self.what_to_do[var[1]]()
 
-    async def _distort(self) -> NoReturn:
-        """
-                Distorts the given image and displays it on current discord's text channel
-        """
-        img: str = self.message.attachments[0].url
-        print(f'Distorting ({img})')
-        self.logger.info(f'Distorting image from discord: {img}')
-        d = di.Distort(img)
-        d.augment_images()
-        self.logger.info('Reading image')
-        with open(di.FOLDER + '/fim.jpg', 'rb') as f:
-            send = File(f)
-            await self._send_message(file=send)
-        self.logger.info('Image sent!')
-        di.delete_images()
-        self.logger.info('Images deleted')
-        print('Distortion done')
+async def currency_crypto(ctx, logger: Optional[Logger]) -> Optional[None]:
+    c = Currency()
+    df = c.fetch_crypto()
 
-    async def _get_commands(self) -> NoReturn:
-        """
-                Returns to discord's current text channel a list of the bot's commands
-        """
-        e = Embed(color=Colour.dark_blue())
-        e.title = 'Comandos do Bot'
-        for c, v in commands.DIC_CMD.items():
-            e.add_field(name=c, value=v, inline=False)
-        await self._send_message(embed=e)
+    e = Embed(color=Colour.dark_purple())
+    e.title = 'Valor das Criptomoedas'
+    e.set_author(name='CoinMarketCap',
+                 url='https://coinmarketcap.com/pt-br/')
+    for _, name, price in df.itertuples():
+        e.add_field(name=name, value=price, inline=False)
 
-    async def _opgg_get_rank(self, nickname: str) -> NoReturn:
-        print(f'Looking for {nickname}')
-        rank: str = find_rank.find_rank(nickname)
-        await self._send_message(f'Seu ranque é {rank}')
+    e.set_footer(text=str(datetime.now()))
+    await send_message(ctx, logger, embed=e)
 
-    async def _ping_host(self) -> NoReturn:
-        embed = Embed(color=Colour.dark_gold())
-        embed.title = 'Pong'
-        embed.description = f'{self.client.latency:.3f}ms'
-        await self._send_message(embed=embed)
 
-    async def _currency_status_fiat(self) -> NoReturn:
-        """
-                Method that returns the currency from the brazilian real
-        """
-        command = ''.join(
-            commands.split_text_with_spaces_using_index(self.message_content, 1))
-        self.logger.info(f'Getting currency {command}')
-        commands.CURRENCIES.get(command)
-        index: int = commands.CURRENCIES[command]
-        currency = Currency()
-        coin = currency.fetch_fiat(index)
-        await self._send_message(f'Valor do {coin}')
+async def lol(ctx, nickname: str, logger: Optional[Logger]) -> Optional[None]:
+    print(f'Looking for {nickname}')
+    rank: str = find_rank.find_rank(nickname)
+    await send_message(ctx, logger, content=f'Seu ranque é {rank}')
 
-    async def _currency_crypto(self) -> NoReturn:
-        self.logger.info(f'Getting crypto currency')
-        c = Currency()
-        df = c.fetch_crypto()
 
-        e = Embed(color=Colour.dark_purple())
-        e.title = 'Valor das Criptomoedas'
-        e.set_author(name='CoinMarketCap',
-                     url='https://coinmarketcap.com/pt-br/')
-        for _, name, price in df.itertuples():
-            e.add_field(name=name, value=price, inline=False)
+async def ping(ctx, logger: Optional[Logger]) -> Optional[None]:
+    embed = Embed(color=Colour.dark_gold())
+    embed.title = 'Pong'
+    embed.description = f'{ctx.bot.latency:.3f}ms'
+    await send_message(ctx, logger, embed=embed)
 
-        e.set_footer(text=str(datetime.now()))
-        await self._send_message(embed=e)
 
-    async def _send_message(self, content: Optional[str] = None, embed: Optional[Embed] = None,
-                            file: Optional[File] = None) -> NoReturn:
-        if file is not None:
-            await self.message.channel.send(file=file)
-        if embed is not None:
-            await self.message.channel.send(embed=embed)
-        elif content is not None:
-            await self.message.channel.send(content)
+async def on_error(ctx, exception, logger: Optional[Logger], type: Optional[Exception]) -> Optional[None]:
+    argument = str(exception).split(' ')[0]
+    message = f'Argumento <{argument}> é necessário para dar continuidade\nExemplo: {ctx.message.content} **{argument}**'
+    e = Embed(color=Colour.red())
+    e.title = type.__name__
+    e.description = message
+    await send_message(ctx, logger, embed=e)
 
-        self.logger.info(f'Message sent on {self.message.channel}')
-        print(f'Message sent on {self.message.channel}')
+
+async def send_message(ctx, logger: Optional[Logger], content: Optional[str] = None, embed: Optional[Embed] = None,
+                       file: Optional[File] = None) -> Optional[None]:
+    if file is not None:
+        await ctx.channel.send(file=file)
+        logger.info('Message sent on %s: %s', ctx.channel, file, exc_info=0)
+    if embed is not None:
+        await ctx.channel.send(embed=embed)
+        logger.info('Message sent on %s: %s', ctx.channel, embed, exc_info=0)
+    elif content is not None:
+        await ctx.channel.send(content)
+        logger.info('Message sent on %s: %s', ctx.channel, content, exc_info=0)
 
 
 if __name__ == '__main__':

@@ -5,16 +5,24 @@ HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2228.0 '
     'Safari/537.3'}
 
-# Constants
-LEAGUE_OPGG = 'lol'
+# Constants ; aliases
+LOL = 'lol'
+LOL_ALIASES = ('l', 'opgg', 'ugg')
+
 PING = 'ping'
-TEST = 't'
-COMMANDS = 'c'
-DISTORCER = 'distorcer'
+PING_ALIASES = ('p', 'pingue')
+
+DISTORT = 'distorcer'
+DISTORT_ALIASES = ('dist', 'd')
 # Prefixo
 PREFIX = 'k'
+CHANGE_PREFIX = 'changeprefix'
+CHANGE_PREFIX_ALIASES = ('cp', 'changep', 'cprefix')
 
 # Currency
+COIN = 'moeda'
+COIN_ALIASES = ('coin', 'm')
+
 DOLAR = 'dolar'
 EURO = 'euro'
 LIBRA = 'libra'
@@ -22,7 +30,8 @@ DOLAR_AUSTRALIANO = 'dolara'
 DOLAR_CANADENSE = 'dolarc'
 
 # Crypto
-CRYPTO = 'cry'
+CRYPTO = 'criptomoedas'
+CRYPTO_ALIASES = ('c', 'cry')
 
 CURRENCIES = {
     DOLAR: 0,
@@ -34,16 +43,12 @@ CURRENCIES = {
 
 DIC_CMD = {
     PREFIX: 'Prefixo do Bot',
-    PING: 'Retorna um número aleatório',
-    LEAGUE_OPGG + ' [username]': 'Retorna o ranque de um usuario no LoL',
-    CRYPTO: 'Retorna as cinco mais bem posicionadas criptomoedas',
-    DOLAR: 'Retorna o valor do dólar',
-    EURO: 'Retorna o valor do euro',
-    LIBRA: 'Retorna o valor da libra',
-    DOLAR_AUSTRALIANO: 'Retorna o valor do dólar australiano',
-    DOLAR_CANADENSE: 'Retorna o valor do dólar canadence',
-    DISTORCER: 'Distorce aleatoriamente uma imagem dada'
-}
+    PING: 'Retorna a latência do bot',
+    LOL: 'Retorna o ranque de um usuario no LoL',
+    CRYPTO: 'Retorna o valor de cinco criptomoedas',
+    COIN: 'Retorna o valor de uma das moedas',
+    DISTORT: 'Distorce aleatoriamente uma imagem dada',
+    CHANGE_PREFIX: 'Muda o prefixo do bot'}
 
 
 def split_text_with_spaces_using_index(text: str, index: int) -> List[str]:
@@ -51,7 +56,7 @@ def split_text_with_spaces_using_index(text: str, index: int) -> List[str]:
 
 
 def fetch_league_name(command: str) -> str:
-    return command.replace(LEAGUE_OPGG, '')
+    return command.replace(LOL, '')
 
 
 # def separate(command: str) -> List[str]:

@@ -1,6 +1,6 @@
 from urllib.request import urlopen, Request
 from typing import NoReturn
-from commands import HEADERS
+from bot_constants import HEADERS
 
 import os
 import cv2

@@ -20,7 +20,6 @@ def find_rank(nickname: str) -> str:
 
     bs = BeautifulSoup(urlopen(ugg_url).read(), 'lxml')
     full_content = bs.title(string=True)[0]
-    print(full_content)
     spl = full_content.split(' ')
 
     rank = []
