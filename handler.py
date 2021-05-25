@@ -50,7 +50,7 @@ async def currency_crypto(ctx, logger: Optional[Logger]) -> Optional[None]:
     await send_message(ctx, logger, embed=e)
 
 
-async def lol(ctx, nickname: str, logger: Optional[Logger]) -> Optional[None]:
+async def lol(ctx, nickname: List[str], logger: Optional[Logger]) -> Optional[None]:
     print(f'Looking for {nickname}')
     rank: str = find_rank.find_rank(nickname)
     await send_message(ctx, logger, content=f'Seu ranque é {rank}')
@@ -61,15 +61,6 @@ async def ping(ctx, logger: Optional[Logger]) -> Optional[None]:
     embed.title = 'Pong'
     embed.description = f'{ctx.bot.latency:.3f}ms'
     await send_message(ctx, logger, embed=embed)
-
-
-async def on_error(ctx, exception, logger: Optional[Logger], type: Optional[Exception]) -> Optional[None]:
-    argument = str(exception).split(' ')[0]
-    message = f'Argumento <{argument}> é necessário para dar continuidade\nExemplo: {ctx.message.content} **{argument}**'
-    e = Embed(color=Colour.red())
-    e.title = type.__name__
-    e.description = message
-    await send_message(ctx, logger, embed=e)
 
 
 async def send_message(ctx, logger: Optional[Logger], content: Optional[str] = None, embed: Optional[Embed] = None,
