@@ -1,17 +1,18 @@
-from urllib.request import urlopen, Request
-from typing import NoReturn
-from bot_constants import HEADERS
-
 import os
+from typing import Optional
+from urllib.request import urlopen, Request
+
 import cv2
 import imgaug as ia
 import numpy as np
 from imgaug import augmenters as iaa
 
+from bot_constants import HEADERS
+
 FOLDER = 'imgs/'
 
 
-def delete_images() -> NoReturn:
+def delete_images() -> Optional[None]:
     from glob import glob
     from os import path, remove
     files = glob(path.join(FOLDER, '*'))
@@ -20,7 +21,7 @@ def delete_images() -> NoReturn:
     os.rmdir(FOLDER)
 
 
-def write(image) -> NoReturn:
+def write(image) -> Optional[None]:
     os.mkdir(FOLDER) if not os.path.exists(FOLDER) else False
     cv2.imwrite(FOLDER + '/fim.jpg',
                 image[0], [int(cv2.IMWRITE_JPEG_QUALITY), 200])
@@ -36,7 +37,7 @@ class Distort:
         img = np.asarray(bytearray(urlopen(req).read()), dtype='uint8')
         return cv2.imdecode(img, cv2.IMREAD_COLOR)
 
-    def augment_images(self) -> NoReturn:
+    def augment_images(self) -> Optional[None]:
         images = [self.decoded_image]
         ia.seed(np.random.randint(100000, size=1)[0])
         for image in images:

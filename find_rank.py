@@ -1,10 +1,11 @@
+from typing import List, Optional
 from urllib.request import urlopen
-from typing import List
+
 from bs4 import BeautifulSoup
 
 
-def find_rank(nickname: List[str]) -> str:
-    nickname = '%20'.join(nickname)
+def find_rank(nickname_list: List[str]) -> str:
+    nickname: str = '%20'.join(nickname_list)
     ugg_url = f'https://u.gg/lol/profile/br1/{nickname}'
     ranks = {
         'Iron': 'Ferro',
@@ -19,14 +20,14 @@ def find_rank(nickname: List[str]) -> str:
 
     bs = BeautifulSoup(urlopen(ugg_url).read(), 'lxml')
     full_content = bs.title(string=True)[0]
-    spl = full_content.split(' ')
+    spl: List[str] = full_content.split(' ')
 
-    rank = []
+    rank: List[str] = []
 
     for x in spl:
         if x in ranks.keys():
             print(ranks.get(x))
-            rank.append(ranks.get(x))
+            rank.append(str(ranks.get(x)))
         if x.isnumeric():
             rank.append(x)
             break
