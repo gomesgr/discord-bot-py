@@ -1,7 +1,7 @@
 import json
 import logging
 from itertools import cycle
-from os import getenv
+import os
 from typing import Optional, List
 
 import discord
@@ -13,7 +13,7 @@ import errors
 import handler
 
 load_dotenv('.env')
-TKN = getenv('BOT_TOKEN')
+TKN = os.getenv('BOT_TOKEN')
 
 statuses = cycle(['The game of life', 'With their hearts', 'Soccer'])
 
@@ -80,28 +80,7 @@ async def ping(ctx: commands.Context) -> Optional[None]:
 
 
 # LOL
-@diclient.command(name=bot_constants.LOL,
-                  aliases=bot_constants.LOL_ALIASES,
-                  description='Retorna o ranque do nickname passado no League of Legends',
-                  brief=bot_constants.DIC_CMD[bot_constants.LOL])
-async def lol(ctx: commands.Context, *nickname: str) -> Optional[None]:
-    await handler.lol(ctx, list(nickname), logger)
 
-
-# CRYPTO
-@diclient.command(name=bot_constants.CRYPTO, aliases=bot_constants.CRYPTO_ALIASES,
-                  description='Retorna as 5 mais bem posicionadas criptomoedas no mercado (dados obtidos a partir do site CoinMarketCap)',
-                  brief=bot_constants.DIC_CMD[bot_constants.CRYPTO])
-async def cry(ctx: commands.Context) -> Optional[None]:
-    await handler.currency_crypto(ctx, logger)
-
-
-# COIN
-@diclient.command(name=bot_constants.COIN, aliases=bot_constants.COIN_ALIASES,
-                  description='Este comando retornará o valor da moeda no parâmetro dado tendo como referência o REAL (moeda brasileira)',
-                  brief=bot_constants.DIC_CMD[bot_constants.COIN])
-async def coin(ctx: commands.Context, coin_name: str) -> Optional[None]:
-    await handler.currency_status_fiat(ctx, coin_name, logger)
 
 
 # DISTORT
@@ -113,21 +92,20 @@ async def distort(ctx: commands.Context) -> Optional[None]:
     await handler.distort(ctx, logger)
 
 
-"""Error handling"""
+# Cogs
+@diclient.command()
+async def load(ctx: commands.Context, extension: str) -> Optional[None]:
+    if str(ctx.author.id) == os.getenv('MY_ID'):
+        diclient.load_extension(f'cogs.{extension}')
+        message = f'Cog {extension} loaded from disk'
+        logger.info(message); print(message)
 
-
-# LOL
-@lol.error
-async def lol_error(ctx: commands.Context, e) -> Optional[None]:
-    if isinstance(e, commands.errors.CommandInvokeError):
-        await errors.lol_error(ctx, e, logger, 'Argumento faltando')
-
-
-# COIN
-@coin.error
-async def coin_error(ctx: commands.Context, e) -> Optional[None]:
-    if isinstance(e, commands.errors.MissingRequiredArgument):
-        await errors.coin_error(ctx, e, logger, 'Argumento faltando')
+@diclient.command()
+async def unload(ctx: commands.Context, extension: str) -> Optional[None]:
+    if str(ctx.author.id) == os.getenv('MY_ID'):
+        diclient.unload_extension(f'cogs.{extension}')
+        message = f'Cog {extension} unloaded from disk'
+        logger.info(message); print(message)
 
 
 if __name__ == '__main__':
@@ -140,4 +118,8 @@ if __name__ == '__main__':
         '%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
     logger.addHandler(file)
     # End of Logging
+    for filename in os.listdir('./cogs'):
+        if filename[-3:] =='.py':
+            diclient.load_extension(f'cogs.{filename[:-3]}')
+
     diclient.run(TKN)

@@ -29,6 +29,8 @@ LIBRA = 'libra'
 DOLAR_AUSTRALIANO = 'dolara'
 DOLAR_CANADENSE = 'dolarc'
 
+COIN_LIST = [DOLAR, EURO, LIBRA, DOLAR_AUSTRALIANO, DOLAR_CANADENSE]
+
 # Crypto
 CRYPTO = 'criptomoedas'
 CRYPTO_ALIASES = ('c', 'cry')
