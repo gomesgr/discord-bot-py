@@ -6,7 +6,6 @@ from discord import (Embed, Colour, File)
 
 import bot_constants
 import distort_images as di
-import find_rank
 
 
 async def distort(ctx, logger: Logger) -> Optional[None]:
@@ -28,14 +27,11 @@ async def lol(ctx, nickname: List[str], logger: Logger) -> Optional[None]:
 
 
 async def ping(ctx, logger: Logger) -> Optional[None]:
-    embed = Embed(color=Colour.dark_gold())
-    embed.title = 'Pong'
-    embed.description = f'{ctx.bot.latency:.3f}ms'
+    
     await send_message(ctx, logger, embed=embed)
 
 
-async def send_message(ctx, logger: Logger, content: Optional[str] = None, embed: Optional[Embed] = None,
-                       file: Optional[File] = None) -> Optional[None]:
+async def send_message(ctx, logger: Logger, content: Optional[str] = None, embed: Optional[Embed] = None, file: Optional[File] = None) -> Optional[None]:
     if file is not None:
         await ctx.channel.send(file=file)
         logger.info(

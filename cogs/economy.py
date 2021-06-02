@@ -48,7 +48,7 @@ class Currency:
 
 
 class Economy(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.currency = Currency()
 
@@ -104,5 +104,5 @@ class Economy(commands.Cog):
         await handler.send_message(ctx, logger, embed=embed)
 
 
-def setup(bot):
+def setup(bot: commands.Bot):
     bot.add_cog(Economy(bot))

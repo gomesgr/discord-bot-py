@@ -73,5 +73,5 @@ class Ranks(commands.Cog):
             await handler.send_message(ctx, logger, embed=embed)
 
 
-def setup(bot):
+def setup(bot: commands.Bot):
     bot.add_cog(Ranks(bot))
