@@ -57,6 +57,12 @@ async def send_message(ctx, logger: Logger, content: Optional[str] = None, embed
         return message
 
 
+async def edit_message(message: Message, logger: Logger, content: Optional[str] = None, embed: Optional[Embed] = None, file: Optional[File] = None) -> Optional[None]:
+    if embed is not None:
+        logger.info('Message %s edited on %s', str(message.id), message.channel, exc_info=False)
+        await message.edit(embed=embed)
+
+
 async def add_reaction(msg: Message, reaction: str):
     await msg.add_reaction(reaction)
 

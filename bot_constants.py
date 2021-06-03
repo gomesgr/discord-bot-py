@@ -55,7 +55,7 @@ DIC_CMD = {
 # Games
 JOKENPO = 'jokenpo'
 JOKENPO_ALIASES = ('jk', 'jkp', 'ppt')
-JOKENPO_PIECES = [':rock:', ':roll_of_paper:', ':scissors:']
+JOKENPO_PIECES = ['\U0001faa8', '\U0001f9fb', '\u2702\uFE0F']
 
 
 def split_text_with_spaces_using_index(text: str, index: int) -> List[str]:
