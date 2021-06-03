@@ -21,7 +21,7 @@ class Image(commands.Cog):
                       description='Este comando recebe uma imagem anexada a mensagem e a distorce',
                       brief=bot_constants.DIC_CMD[bot_constants.DISTORT])
     async def distort(self, ctx: commands.Context):
-    	await handler.distort(ctx, logger)
+        await handler.distort(ctx, logger)
 
 
 def setup(bot: commands.Bot):

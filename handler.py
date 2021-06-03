@@ -1,10 +1,14 @@
-from datetime import datetime
 from logging import Logger
-from typing import (Optional, List)
+from typing import (Optional)
 
-from discord import (Embed, Colour, File)
+from discord import (Embed, File, Message)
 
-import bot_constants
+import distort_images as di
+from logging import Logger
+from typing import (Optional)
+
+from discord import (Embed, File, Message)
+
 import distort_images as di
 
 
@@ -20,18 +24,7 @@ async def distort(ctx, logger: Logger) -> Optional[None]:
     print('Distortion done')
 
 
-async def lol(ctx, nickname: List[str], logger: Logger) -> Optional[None]:
-    
-    rank: str = find_rank.find_rank(nickname)
-    await send_message(ctx, logger, content=f'Seu ranque é {rank}')
-
-
-async def ping(ctx, logger: Logger) -> Optional[None]:
-    
-    await send_message(ctx, logger, embed=embed)
-
-
-async def send_message(ctx, logger: Logger, content: Optional[str] = None, embed: Optional[Embed] = None, file: Optional[File] = None) -> Optional[None]:
+async def send_message(ctx, logger: Logger, content: Optional[str] = None, embed: Optional[Embed] = None, file: Optional[File] = None, emojis: Optional[bool] = None) -> Optional[Message]:
     if file is not None:
         await ctx.channel.send(file=file)
         logger.info(
@@ -39,7 +32,7 @@ async def send_message(ctx, logger: Logger, content: Optional[str] = None, embed
             ctx.channel,
             file,
             exc_info=False)
-    if embed is not None:
+    elif embed is not None and not emojis:
         await ctx.channel.send(embed=embed)
         logger.info(
             'Message sent on %s: %s',
@@ -53,6 +46,19 @@ async def send_message(ctx, logger: Logger, content: Optional[str] = None, embed
             ctx.channel,
             content,
             exc_info=False)
+    elif embed is not None and emojis:
+        message = await ctx.send(embed=embed)
+        print(message)
+        logger.info(
+            'Message sent on %s: %s',
+            ctx.channel,
+            embed,
+            exc_info=False)
+        return message
+
+
+async def add_reaction(msg: Message, reaction: str):
+    await msg.add_reaction(reaction)
 
 
 if __name__ == '__main__':

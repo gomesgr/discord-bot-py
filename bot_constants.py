@@ -52,6 +52,11 @@ DIC_CMD = {
     DISTORT: 'Distorce aleatoriamente uma imagem dada',
     CHANGE_PREFIX: 'Muda o prefixo do bot'}
 
+# Games
+JOKENPO = 'jokenpo'
+JOKENPO_ALIASES = ('jk', 'jkp', 'ppt')
+JOKENPO_PIECES = [':rock:', ':roll_of_paper:', ':scissors:']
+
 
 def split_text_with_spaces_using_index(text: str, index: int) -> List[str]:
     return text.split(' ')[index:]
