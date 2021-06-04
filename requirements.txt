@@ -5,3 +5,4 @@ opencv-python==4.5.2.52
 imgaug==0.4.0
 python-dotenv==0.17.1
 beautifulsoup4==4.8.2
+lxml==4.6.3
