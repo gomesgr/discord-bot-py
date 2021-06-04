@@ -91,7 +91,7 @@ if __name__ == '__main__':
     logger = logging.getLogger('discord')
     logger.setLevel(logging.INFO)
     if not os.path.exists('.logs'):
-        os.path.mkdir('.logs')
+        os.mkdir('.logs')
     file = logging.FileHandler(
         filename='.logs/bot.log', encoding='utf-8', mode='w')
     file.setFormatter(logging.Formatter(

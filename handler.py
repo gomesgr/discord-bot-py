@@ -4,12 +4,6 @@ from typing import (Optional)
 from discord import (Embed, File, Message)
 
 import distort_images as di
-from logging import Logger
-from typing import (Optional)
-
-from discord import (Embed, File, Message)
-
-import distort_images as di
 
 
 async def distort(ctx, logger: Logger) -> Optional[None]:
