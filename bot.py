@@ -98,7 +98,7 @@ if __name__ == '__main__':
         '%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
     logger.addHandler(file)
     # End of Logging
-    for filename in os.listdir('./cogs'):
+    for filename in os.listdir('cogs'):
         if filename[-3:] == '.py':
             diclient.load_extension(f'cogs.{filename[:-3]}')
 
