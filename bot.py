@@ -31,11 +31,7 @@ diclient = commands.Bot(command_prefix=get_prefix)
 
 @tasks.loop(seconds=10)
 async def change_status() -> Optional[None]:
-    await diclient.change_presence(activity=discord.Streaming(name='Programando o bot',
-                                                              url='https://www.twitch.tv/themrhetch',
-                                                              platform='Twitch',
-                                                              game='Science & Technology',
-                                                              twitch_name='TheMrHetch'))
+    await diclient.change_presence(activity=discord.Game(next(statuses)))
 
 
 @diclient.event
