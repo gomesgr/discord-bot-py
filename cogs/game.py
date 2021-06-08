@@ -18,7 +18,6 @@ class Jokenpo:
                                          '\u2702\uFE0F': '\U0001f9fb'}
 
     async def add_message(self) -> Message:
-        # TODO jokenpo game
         embed = Embed()
         embed.title = 'Escolha um'
         embed.description = ' '.join(bot_constants.JOKENPO_PIECES)
