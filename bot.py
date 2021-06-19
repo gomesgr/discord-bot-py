@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 import bot_constants
 
 load_dotenv('.env')
-TKN = os.getenv('TEST_BOT_TOKEN')
+TKN = os.getenv('BOT_TOKEN')
 
 statuses = cycle(['The game of life', 'With their hearts', 'Soccer'])
 
