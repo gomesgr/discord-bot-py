@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 import bot_constants
 
 load_dotenv('.env')
-TKN = os.getenv('BOT_TOKEN')
+TKN = os.getenv('TEST_BOT_TOKEN')
 
 statuses = cycle(['The game of life', 'With their hearts', 'Soccer'])
 
@@ -77,9 +77,24 @@ async def unload(_: commands.Context, extension: str) -> Optional[None]:
 @diclient.command(hidden=True)
 @commands.check(is_me)
 async def reload(ctx: commands.Context, extension: str):
-    await unload(ctx, extension)
-    await load(ctx, extension)
+    diclient.reload_extension(f'cogs.{extension}')
     await ctx.send(f'Reloaded {extension}')
+
+
+@diclient.event
+async def on_command_error(ctx: commands.Context, _):
+
+    @load.error
+    async def on_load_error(ctx: commands.Context, _):
+        await ctx.send('Erro ao carregar Cog')
+
+    @unload.error
+    async def on_unload_error(ctx: commands.Context, _):
+        await ctx.send('Erro descarregar Cog')
+
+    @reload.error
+    async def on_reload_error(ctx: commands.Context, _):
+        await ctx.send('Erro ao recarregar Cog')
 
 
 if __name__ == '__main__':
