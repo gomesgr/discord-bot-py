@@ -6,11 +6,12 @@ Bot geral para o Discord utilizando Python
 
 - bs4 _(BeautifulSoup)_
 - pandas
-- dotenv
+- python-dotenv
 - autopep8
 - numpy
 - cv2
 - imgaug
+- lxml
 - [Discord.py](https://discordpy.readthedocs.io/en/stable/#)
 
 ## Para utilizar o bot, utilizar o prefixo abaixo antes de cada comando
