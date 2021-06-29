@@ -53,36 +53,31 @@ class Manga(commands.Cog):
 		if not user.bot and self.count == 0:
 			if self.msgid == reaction.message.id:
 				if reaction.emoji == bot_constants.RIGHT_WRONG[0]:
-					await handler.send_message(self.ctx, logger,
-					                           content='Digite o capitulo que quer ler. Ex: *ks 1000*')
+					await handler.send_message(self.ctx, logger, content='Digite o capitulo que quer ler. Ex: *ks 1000*')
 					self.count = 1
 
 	@commands.command(name="s")
 	async def get_manga_chapter(self, ctx: commands.Context, chapter: str):
-		# self.md.init(self.manga['name'], self.manga['uuid'], chapter=chapter)
-		print('ei')
-		await self._create_text_channel(chapter)
+		self.md.init(self.manga['name'], self.manga['uuid'], chapter=chapter)
+		await self._create_text_channel(ctx, chapter)
 
-	async def _create_text_channel(self, manga_chapter: str):
-
+	async def _create_text_channel(self, ctx: discord.Context, manga_chapter: str):
 		with open('text_channels.json', 'r') as f:
 			channels = json.load(f)
 
-		author = self.ctx.author
+		author = ctx.author
 
-		channel: discord.TextChannel = await self.ctx.guild.create_text_channel(f'{self.manga["name"]}-{manga_chapter}')
+		channel: discord.TextChannel = await ctx.guild.create_text_channel(f'{self.manga["name"]}-{manga_chapter}')
 		ow = discord.PermissionOverwrite()
 		ow.send_messages = False
 		ow.read_messages = True
 		await channel.set_permissions(author, overwrite=ow)
-		default_role = discord.utils.get(self.ctx.guild.roles, name='@everyone')
+		default_role = discord.utils.get(ctx.guild.roles, name='@everyone')
 
 		ow.read_messages = False
 		await channel.set_permissions(default_role, overwrite=ow)
 
-		channels[str(self.ctx.guild.id)][str(author.id)] = str(channel.id)
-
-		print(channels)
+		channels[str(ctx.guild.id)][str(author.id)] = str(channel.id)
 
 		with open('text_channels.json', 'w') as f:
 			json.dump(channels, f, indent=4)
