@@ -18,7 +18,7 @@ async def distort(ctx, logger: Logger) -> Optional[None]:
     print('Distortion done')
 
 
-async def send_message(ctx, logger: Logger, content: Optional[str] = None, embed: Optional[Embed] = None, file: Optional[File] = None, emojis: Optional[bool] = None) -> Optional[Message]:
+async def send_message(ctx, logger: Logger, content: Optional[str] = None, embed: Optional[Embed] = None, file: Optional[File] = None, emojis: Optional[bool] = False) -> Optional[Message]:
     if file is not None:
         await ctx.channel.send(file=file)
         logger.info(
