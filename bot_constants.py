@@ -57,6 +57,10 @@ JOKENPO = 'jokenpo'
 JOKENPO_ALIASES = ('jk', 'jkp', 'ppt')
 JOKENPO_PIECES = ['\U0001faa8', '\U0001f9fb', '\u2702\uFE0F']
 
+# Manga
+MANGA_SEARCH = 'mangasearch'
+MANGA_SEARCH_ALIASES = ('ms', 'msearch', 'procurarmanga')
+
 
 def split_text_with_spaces_using_index(text: str, index: int) -> List[str]:
     return text.split(' ')[index:]

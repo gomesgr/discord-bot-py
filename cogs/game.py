@@ -10,6 +10,7 @@ from random import choice
 
 logger = getLogger('discord')
 
+
 class Jokenpo:
     def __init__(self, ctx: commands.Context):
         self.ctx = ctx
@@ -30,7 +31,8 @@ class Jokenpo:
         bot = self.ctx.bot
         if message_author != bot.user:
             if message_reaction.message.id == message.id and message_reaction.emoji in bot_constants.JOKENPO_PIECES:
-                pc_choice, user_choice = choice(bot_constants.JOKENPO_PIECES), message_reaction.emoji
+                pc_choice, user_choice = choice(
+                    bot_constants.JOKENPO_PIECES), message_reaction.emoji
                 pcwin = user_choice == self.jokenpo_winning_elements[pc_choice]
                 userwin = pc_choice == self.jokenpo_winning_elements[user_choice]
 
