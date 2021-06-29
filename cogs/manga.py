@@ -53,7 +53,8 @@ class Manga(commands.Cog):
 		if not user.bot and self.count == 0:
 			if self.msgid == reaction.message.id:
 				if reaction.emoji == bot_constants.RIGHT_WRONG[0]:
-					await handler.send_message(self.ctx, logger, content='Digite o capitulo que quer ler. Ex: *ks 1000*')
+					await handler.send_message(self.ctx, logger,
+					                           content='Digite o capitulo que quer ler. Ex: *ks 1000*')
 					self.count = 1
 
 	@commands.command(name="s")
@@ -63,11 +64,13 @@ class Manga(commands.Cog):
 		await self._create_text_channel(chapter)
 
 	async def _create_text_channel(self, manga_chapter: str):
-		print('ei 2')
-		channels: Dict = dict()
-		print('adead')
-		channel: discord.TextChannel = await self.ctx.guild.create_text_channel(f'{self.manga["name"]}-{manga_chapter}')
+
+		with open('text_channels.json', 'r') as f:
+			channels = json.load(f)
+
 		author = self.ctx.author
+
+		channel: discord.TextChannel = await self.ctx.guild.create_text_channel(f'{self.manga["name"]}-{manga_chapter}')
 		ow = discord.PermissionOverwrite()
 		ow.send_messages = False
 		ow.read_messages = True
@@ -76,7 +79,9 @@ class Manga(commands.Cog):
 
 		ow.read_messages = False
 		await channel.set_permissions(default_role, overwrite=ow)
-		channels.update({str(self.ctx.guild.id): {str(author.id): channel.id}})
+
+		channels[str(self.ctx.guild.id)][str(author.id)] = str(channel.id)
+
 		print(channels)
 
 		with open('text_channels.json', 'w') as f:
@@ -85,6 +90,7 @@ class Manga(commands.Cog):
 	@commands.Cog.listener()
 	async def on_error(self, ex):
 		print(ex)
+
 
 class Mangadownloader:
 	"""
@@ -223,13 +229,13 @@ class Mangadownloader:
 				columns={
 					self.df.columns[i]: column_names[i] for i in range(
 						len(column_names))})
-			# print(self.df.head())
-			# if save:
-			#     path = f'{self.manga_name}.xlsx'
-			#     w = pd.ExcelWriter(path)
-			#     self.df.to_excel(w)
-			#     w.save()
-			#     print(f'Dataframe copy saved into: <{path}>')
+		# print(self.df.head())
+		# if save:
+		#     path = f'{self.manga_name}.xlsx'
+		#     w = pd.ExcelWriter(path)
+		#     self.df.to_excel(w)
+		#     w.save()
+		#     print(f'Dataframe copy saved into: <{path}>')
 
 	def _save_response(self):
 		"""
