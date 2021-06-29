@@ -8,7 +8,7 @@ import handler
 import bot_constants
 import pandas as pd
 from discord.ext import commands
-from discord import Embed
+import discord
 
 logger = getLogger('discord')
 
@@ -37,7 +37,7 @@ class Manga(commands.Cog):
 		self.count = 0
 		manga_name = list(manga_name)
 		self.manga['uuid'], self.manga['name'], self.manga['cover_url'] = self.md.search(manga_name)
-		embed = Embed()
+		embed = discord.Embed()
 		print(self.manga['cover_url'])
 		embed.set_image(url=self.manga['cover_url'])
 		embed.title = 'Capa'
@@ -58,11 +58,33 @@ class Manga(commands.Cog):
 
 	@commands.command(name="s")
 	async def get_manga_chapter(self, ctx: commands.Context, chapter: str):
-		print('downloading...')
-		self.md.init(self.manga['name'], self.manga['uuid'], chapter=chapter)
+		# self.md.init(self.manga['name'], self.manga['uuid'], chapter=chapter)
+		print('ei')
+		await self._create_text_channel(chapter)
 
+	async def _create_text_channel(self, manga_chapter: str):
+		print('ei 2')
+		channels: Dict = dict()
+		print('adead')
+		channel: discord.TextChannel = await self.ctx.guild.create_text_channel(f'{self.manga["name"]}-{manga_chapter}')
+		author = self.ctx.author
+		ow = discord.PermissionOverwrite()
+		ow.send_messages = False
+		ow.read_messages = True
+		await channel.set_permissions(author, overwrite=ow)
+		default_role = discord.utils.get(self.ctx.guild.roles, name='@everyone')
 
+		ow.read_messages = False
+		await channel.set_permissions(default_role, overwrite=ow)
+		channels.update({str(self.ctx.guild.id): {str(author.id): channel.id}})
+		print(channels)
 
+		with open('text_channels.json', 'w') as f:
+			json.dump(channels, f, indent=4)
+
+	@commands.Cog.listener()
+	async def on_error(self, ex):
+		print(ex)
 
 class Mangadownloader:
 	"""
