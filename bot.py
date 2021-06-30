@@ -67,6 +67,7 @@ async def on_guild_join(guild) -> Optional[None]:
 async def on_error(event, *_, **__):
     print(event)
 
+
 # Cogs
 @diclient.command(hidden=True)
 @commands.check(is_me)
@@ -95,6 +96,8 @@ async def reload(ctx: commands.Context, extension: str):
 
 @diclient.event
 async def on_command_error(ctx: commands.Context, _):
+
+    print(_)
 
     @load.error
     async def on_load_error(ctx: commands.Context, _):
