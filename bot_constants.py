@@ -63,6 +63,11 @@ MANGA_SEARCH_ALIASES = ('ms', 'msearch', 'procurarmanga')
 
 RIGHT_WRONG = ['\u2705', '\u274C']
 
+FIRST = None
+NEXT = '\u25B6\uFE0F'
+PREVIOUS = '\u25C0\uFE0F'
+LAST = '\u23ED\uFE0F'
+
 
 def split_text_with_spaces_using_index(text: str, index: int) -> List[str]:
     return text.split(' ')[index:]

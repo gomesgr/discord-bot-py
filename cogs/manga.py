@@ -10,7 +10,7 @@ import pandas as pd
 from discord.ext import commands
 import discord
 
-logger = getLogger('discord')
+logger = getLogger('manga')
 
 
 def not_bot(user) -> bool:
@@ -20,12 +20,16 @@ def not_bot(user) -> bool:
 class Manga(commands.Cog):
 	def __init__(self, bot: commands.Bot):
 		self.bot = bot
-		self.msgid = ''
+		self.msg_embed_cover_id = ''
 		self.ctx: Optional[commands.Context] = None
 		self.count = 0
 		self.md: Mangadownloader = Mangadownloader()
 		self.manga: Dict[str, str] = {}
 		self.manga_df: pd.DataFrame = pd.DataFrame()
+		self.previous_manga_df = pd.DataFrame()
+		self.manga_page = 0
+		self.users_using: Dict[str, int] = dict()
+		self.items = 0
 
 	@commands.Cog.listener()
 	async def on_ready(self):
@@ -45,28 +49,66 @@ class Manga(commands.Cog):
 		embed.set_footer(text=self.manga['name'])
 		embed.description = 'É esse o mangá que você está procurando?'
 		msg = await handler.send_message(ctx, logger, embed=embed, emojis=True)
-		self.msgid = msg.id
+		self.msg_embed_cover_id = msg.id
 		self.ctx = ctx
 		[await handler.add_reaction(msg, reaction) for reaction in bot_constants.RIGHT_WRONG]
 
 	@commands.Cog.listener()
 	async def on_reaction_add(self, reaction, user):
-		if not user.bot and self.count == 0:
-			if self.msgid == reaction.message.id:
-				if reaction.emoji == bot_constants.RIGHT_WRONG[0]:
-					self.count = 1
-					await self._init_search()
+		if not user.bot:
+			if self.count == 0:
+				if self.msg_embed_cover_id == reaction.message.id:
+					if reaction.emoji == bot_constants.RIGHT_WRONG[0]:
+						self.count = 1
+						await self._init_search()
+						return
+
+			with open('text_channels.json', 'r') as f:
+				channels = json.load(f)
+
+			if str(reaction.message.channel.id) == channels[str(reaction.message.guild.id)][str(user.id)]:
+				# NEXT
+
+				if reaction.emoji == bot_constants.NEXT:
+					self.manga_page += 1
+					self.items += 5
+					print('next')
+
+					await reaction.message.edit(content=self.manga_df.iloc[self.items - 5:self.items])
+
+				# PREVIOUS
+				elif reaction.emoji == bot_constants.PREVIOUS and self.manga_page > 1:
+					self.manga_page -= 1
+					self.items -= 5
+					print('prev')
+
+					await reaction.message.edit(content=self.manga_df.iloc[self.items - 5:self.items])
 
 	async def _init_search(self):
+		"""
+			Starts iteration over manga chapters
+		"""
 		if self.count == 1:
 			self.manga_df = self.md.init(self.manga['name'], self.manga['uuid'])
-			await self._create_text_channel()
+			created_channel = await self._create_text_channel()
+			message = await created_channel.send(content='**Escolha o capitulo abaixo:**')
+			await message.add_reaction(bot_constants.PREVIOUS)
+			await message.add_reaction(bot_constants.NEXT)
+			# await self._change_context(created_channel)
+
+	async def _change_context(self, channel):
+		pass
 
 	async def _create_text_channel(self):
+		"""
+			Creates the user-related text-channel
+		"""
 		with open('text_channels.json', 'r') as f:
 			channels = json.load(f)
 
 		author = self.ctx.author
+
+		self.users_using[str(author.id)] = 0
 
 		channel: discord.TextChannel = await self.ctx.guild.create_text_channel(f'{self.manga["name"]}-{author.name}')
 		ow = discord.PermissionOverwrite()
@@ -84,10 +126,12 @@ class Manga(commands.Cog):
 		with open('text_channels.json', 'w') as f:
 			json.dump(channels, f, indent=4)
 
-		e = discord.Embed()
-		for v in self.manga_df.head().itertuples():
-			e.add_field(name='Capitulo', value=f'{v.chapter:.1f}', inline=False)
-		await channel.send(embed=e)
+		return channel
+
+		# e = discord.Embed()
+		# for v in self.manga_df.head().itertuples():
+		# 	e.add_field(name='Capitulo', value=f'{v.chapter:.1f}', inline=False)
+		# await channel.send(embed=e)
 
 
 class Mangadownloader:
@@ -140,7 +184,7 @@ class Mangadownloader:
 			manga_id: str,
 			lang: Optional[str] = 'en',
 			offset: Optional[int] = 0,
-			save_file: Optional[bool] = False):
+			chapter: Optional[str] = ''):
 		"""
 			Initial method if not given values on true __init__
 			:param manga_name: this shall be used as foldername to download the chapters
@@ -153,8 +197,6 @@ class Mangadownloader:
 			:type chapter: str
 			:param offset: which chapter should the search begin from (not completely precise since mangas have bronken chapters as such: [10.2, 10.5, etc])
 			:type offset: int
-			:param save_file: A boolean optional value to tell if you want to save onto a .xlsx file or not (standard being False)
-			:type save_file: Optional[bool]
 		"""
 		self.manga_name = manga_name
 		self.manga_id = manga_id
@@ -196,7 +238,7 @@ class Mangadownloader:
 			computational need for that)
 		"""
 
-		column_names = ['id', 'type', 'chapter', 'language', 'hash', 'data']
+		column_names = ['id', 'type', 'title', 'chapter', 'language', 'hash', 'data']
 
 		if self.json_chapters['results']:
 			self.chapters = next(iter(self.json_chapters.values()))
@@ -204,7 +246,7 @@ class Mangadownloader:
 			full_dict = flattened_dict.to_dict(orient='records')
 			self.df = pd.DataFrame(full_dict)
 			self.df = self.df.drop('data.attributes.dataSaver', axis=1)
-			self.df = self.df.drop('data.attributes.title', axis=1)
+			# self.df = self.df.drop('data.attributes.title', axis=1)
 			self.df = self.df.drop('data.attributes.createdAt', axis=1)
 			self.df = self.df.drop('data.attributes.version', axis=1)
 			self.df = self.df.drop('data.attributes.updatedAt', axis=1)
@@ -216,17 +258,13 @@ class Mangadownloader:
 				self.df['data.attributes.chapter'], downcast='float')
 			self.df.sort_values(by=['data.attributes.chapter'], inplace=True)
 
-			self.df = self.df.rename(
-				columns={
-					self.df.columns[i]: column_names[i] for i in range(
-						len(column_names))})
+			self.df = self.df.rename(columns={self.df.columns[i]: column_names[i] for i in range(len(column_names))})
 
 	def _save_response(self):
 		"""
 			Saves all the json reponse from the api into a json object
 		"""
 		manga = requests.get(self.full_url)
-		print(f'{manga=}')
 		self.json_chapters = json.loads(manga.text)
 
 	def _make_folders(self, foldername: Optional[str] = 'cover', chapter_row=None):
@@ -241,7 +279,6 @@ class Mangadownloader:
 		self.manga_name = sub('[-!$%^&*()_+|~=`{}[]:";\'<>?,./]', '', self.manga_name)
 
 		file = f'{self.manga_name}/{chapter_row.chapter:.1f}' if chapter_row else f'{self.manga_name}/{foldername}'
-		print(file)
 		if not os.path.exists(self.manga_name):
 			os.mkdir(self.manga_name)
 		if not os.path.exists(file):
