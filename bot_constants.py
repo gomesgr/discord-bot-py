@@ -65,7 +65,7 @@ MANGA_SEARCH_ALIASES = ('ms', 'msearch', 'procurarmanga')
 
 RIGHT_WRONG = ['\u2705', '\u274C']
 
-FIRST = None
+FIRST = '\u23EE\uFE0F'
 NEXT = '\u25B6\uFE0F'
 PREVIOUS = '\u25C0\uFE0F'
 LAST = '\u23ED\uFE0F'
