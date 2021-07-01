@@ -1,6 +1,6 @@
 import os
 from logging import getLogger
-from typing import Optional, List, Dict, Tuple, Any, Union
+from typing import Optional, List, Dict, Tuple, Union
 import requests
 import json
 
@@ -8,7 +8,7 @@ import handler
 import bot_constants
 import pandas as pd
 from discord.ext import commands
-import discord
+from discord import TextChannel, Embed, PermissionOverwrite, utils
 
 logger = getLogger('manga')
 
@@ -29,7 +29,7 @@ class Manga(commands.Cog):
 		self.previous_manga_df = pd.DataFrame()
 		self.manga_page = 0
 		self.users_using: Dict[str, int] = dict()
-		self.items = 0
+		self.items = 5
 
 	@commands.Cog.listener()
 	async def on_ready(self):
@@ -42,7 +42,7 @@ class Manga(commands.Cog):
 		self.count = 0
 		manga_name = list(manga_name)
 		self.manga['uuid'], self.manga['name'], self.manga['cover_url'] = self.md.search(manga_name)
-		embed = discord.Embed()
+		embed = Embed()
 		print(self.manga['cover_url'])
 		embed.set_image(url=self.manga['cover_url'])
 		embed.title = 'Capa'
@@ -68,32 +68,52 @@ class Manga(commands.Cog):
 
 			if str(reaction.message.channel.id) == channels[str(reaction.message.guild.id)][str(user.id)]:
 				# NEXT
-
 				if reaction.emoji == bot_constants.NEXT:
+					embed = Embed()
+					embed.title = 'Escolha o capitulo abaixo:'
 					self.manga_page += 1
 					self.items += 5
 					print('next')
-
-					await reaction.message.edit(content=self.manga_df.iloc[self.items - 5:self.items])
+					c = 0
+					for x in self.manga_df.iloc[self.items - 5:self.items].itertuples():
+						embed.add_field(name=bot_constants.NUMBERS_ONE_TO_FIVE[c], value=f'{x.chapter:.1f}', inline=False)
+						c += 1
+					await reaction.message.edit(embed=embed)
 
 				# PREVIOUS
-				elif reaction.emoji == bot_constants.PREVIOUS and self.manga_page > 1:
+				elif reaction.emoji == bot_constants.PREVIOUS and self.manga_page >= 1:
+					embed = Embed()
+					embed.title = 'Escolha o capitulo abaixo:'
 					self.manga_page -= 1
 					self.items -= 5
 					print('prev')
-
-					await reaction.message.edit(content=self.manga_df.iloc[self.items - 5:self.items])
+					c = 0
+					for x in self.manga_df.iloc[self.items - 5:self.items].itertuples():
+						embed.add_field(name=bot_constants.NUMBERS_ONE_TO_FIVE[c], value=f'{x.chapter:.1f}', inline=False)
+						c += 1
+					await reaction.message.edit(embed=embed)
+				print(self.manga_page)
 
 	async def _init_search(self):
+		from string import whitespace
 		"""
 			Starts iteration over manga chapters
 		"""
 		if self.count == 1:
 			self.manga_df = self.md.init(self.manga['name'], self.manga['uuid'])
 			created_channel = await self._create_text_channel()
-			message = await created_channel.send(content='**Escolha o capitulo abaixo:**')
+			embed = Embed()
+			embed.title = 'Escolha o capitulo abaixo:'
+
+			first_five = [f'{x.chapter:.1f}' for x in self.manga_df.head().itertuples()]
+
+			for i in range(5):
+				embed.add_field(name=bot_constants.NUMBERS_ONE_TO_FIVE[i], value=first_five[i], inline=False)
+
+			message = await created_channel.send(embed=embed)
 			await message.add_reaction(bot_constants.PREVIOUS)
 			await message.add_reaction(bot_constants.NEXT)
+			[await message.add_reaction(v) for v in bot_constants.NUMBERS_ONE_TO_FIVE]
 			# await self._change_context(created_channel)
 
 	async def _change_context(self, channel):
@@ -110,13 +130,13 @@ class Manga(commands.Cog):
 
 		self.users_using[str(author.id)] = 0
 
-		channel: discord.TextChannel = await self.ctx.guild.create_text_channel(f'{self.manga["name"]}-{author.name}')
-		ow = discord.PermissionOverwrite()
+		channel: TextChannel = await self.ctx.guild.create_text_channel(f'{self.manga["name"]}-{author.name}')
+		ow = PermissionOverwrite()
 		ow.send_messages = False
 		ow.read_messages = True
 		await channel.set_permissions(author, overwrite=ow)
 
-		default_role = discord.utils.get(self.ctx.guild.roles, name='@everyone')
+		default_role = utils.get(self.ctx.guild.roles, name='@everyone')
 
 		ow.read_messages = False
 		await channel.set_permissions(default_role, overwrite=ow)
@@ -238,7 +258,7 @@ class Mangadownloader:
 			computational need for that)
 		"""
 
-		column_names = ['id', 'type', 'title', 'chapter', 'language', 'hash', 'data']
+		column_names = ['id', 'type', 'chapter', 'language', 'hash', 'data']
 
 		if self.json_chapters['results']:
 			self.chapters = next(iter(self.json_chapters.values()))
@@ -246,7 +266,7 @@ class Mangadownloader:
 			full_dict = flattened_dict.to_dict(orient='records')
 			self.df = pd.DataFrame(full_dict)
 			self.df = self.df.drop('data.attributes.dataSaver', axis=1)
-			# self.df = self.df.drop('data.attributes.title', axis=1)
+			self.df = self.df.drop('data.attributes.title', axis=1)
 			self.df = self.df.drop('data.attributes.createdAt', axis=1)
 			self.df = self.df.drop('data.attributes.version', axis=1)
 			self.df = self.df.drop('data.attributes.updatedAt', axis=1)

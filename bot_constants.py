@@ -61,12 +61,22 @@ JOKENPO_PIECES = ['\U0001faa8', '\U0001f9fb', '\u2702\uFE0F']
 MANGA_SEARCH = 'mangasearch'
 MANGA_SEARCH_ALIASES = ('ms', 'msearch', 'procurarmanga')
 
+# Emojis
+
 RIGHT_WRONG = ['\u2705', '\u274C']
 
 FIRST = None
 NEXT = '\u25B6\uFE0F'
 PREVIOUS = '\u25C0\uFE0F'
 LAST = '\u23ED\uFE0F'
+
+NUMBERS_ONE_TO_FIVE = [
+    '1\uFE0F\u20E3',
+    '2\uFE0F\u20E3',
+    '3\uFE0F\u20E3',
+    '4\uFE0F\u20E3',
+    '5\uFE0F\u20E3'
+]
 
 
 def split_text_with_spaces_using_index(text: str, index: int) -> List[str]:
