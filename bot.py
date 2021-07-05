@@ -52,7 +52,7 @@ async def on_guild_join(guild) -> Optional[None]:
     with open('text_channels.json', 'r') as f:
         channels = json.load(f)
 
-    channels[str(guild.id)] = dict()
+    channels[str(guild.id)] = {}
 
     prefixes[str(guild.id)] = bot_constants.PREFIX
 
