@@ -63,9 +63,9 @@ async def on_guild_join(guild) -> Optional[None]:
         json.dump(channels, f, indent=4)
 
 
-@diclient.event
-async def on_error(event, *_, **__):
-    print(event)
+# @diclient.event
+# async def on_error(event, *_, **__):
+#     print(event, _, __)
 
 
 # Cogs
@@ -95,9 +95,9 @@ async def reload(ctx: commands.Context, extension: str):
 
 
 @diclient.event
-async def on_command_error(ctx: commands.Context, _):
+async def on_command_error(ctx: commands.Context, ex):
 
-    print(_)
+    print(f'{ex=}')
 
     @load.error
     async def on_load_error(ctx: commands.Context, _):
