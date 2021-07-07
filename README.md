@@ -25,13 +25,14 @@ Bot geral para o Discord utilizando Python
 
 ### Comandos disponíveis
 
-|   Comando   |               Parâmetro                |                                         Função                                          |
-| :---------: | :------------------------------------: | :-------------------------------------------------------------------------------------: |
-|   `ping`    |                  `*`                   |                               Retorna um número aleatório                               |
-|     `c`     |                  `*`                   |                       Mostra todos os comandos disponíveis do bot                       |
-|    `lol`    |               `username`               |                          Retorna o ranque de `username` no LoL                          |
-|    `cry`    |                  `*`                   | Retorna as cinco mais bem [posicionadas criptomoedas](https://coinmarketcap.com/pt-br/) |
-|   `moeda`   | `[dolar, dolara, dolarc, libra, euro]` |               Retorna o valor de uma das moedas inseridas após o comando                |
-| `distorcer` |              `image_file`              |                    Distorce uma imagem passada pelo chat do Discord                     |
-|   `help`    |                  `*`                   |                Lista uma mensagem de ajuda com todos os comandos do Bot                 |
-|  `jokenpo`  |                  `*`                   |                 Inicia um jogo de pedra, papel e tesoura para o jogador                 |
+|    Comando    |               Parâmetro                |                                         Função                                          |
+| :-----------: | :------------------------------------: | :-------------------------------------------------------------------------------------: |
+|    `ping`     |                  `*`                   |                               Retorna um número aleatório                               |
+|      `c`      |                  `*`                   |                       Mostra todos os comandos disponíveis do bot                       |
+|     `lol`     |               `username`               |                          Retorna o ranque de `username` no LoL                          |
+|     `cry`     |                  `*`                   | Retorna as cinco mais bem [posicionadas criptomoedas](https://coinmarketcap.com/pt-br/) |
+|    `moeda`    | `[dolar, dolara, dolarc, libra, euro]` |               Retorna o valor de uma das moedas inseridas após o comando                |
+|  `distorcer`  |              `image_file`              |                    Distorce uma imagem passada pelo chat do Discord                     |
+|    `help`     |                  `*`                   |                Lista uma mensagem de ajuda com todos os comandos do Bot                 |
+|   `jokenpo`   |                  `*`                   |                 Inicia um jogo de pedra, papel e tesoura para o jogador                 |
+| `mangasearch` |              `manga_name`              |        Retorna a capa perguntando se o `manga_name` é o que você está procurando        |
