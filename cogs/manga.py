@@ -13,6 +13,8 @@ from discord import TextChannel, Embed, PermissionOverwrite, utils
 logger = getLogger('manga')
 # pd.options.display.float_format = '{:.1f}'.format
 
+JSON_CHANNEL_IDS_FILE = 'text_channels.json'
+
 
 def not_bot(user) -> bool:
 	return str(user.id) != os.getenv('MY_BOT')
@@ -38,8 +40,7 @@ class Manga(commands.Cog):
 		print(message)
 		logger.info(message)
 
-	@commands.command(name=bot_constants.MANGA_SEARCH,
-					  aliases=bot_constants.MANGA_SEARCH_ALIASES)
+	@commands.command(name=bot_constants.MANGA_SEARCH, aliases=bot_constants.MANGA_SEARCH_ALIASES)
 	async def mangasearch(self, ctx: commands.Context, *manga_name: str):
 		self.count = 0
 		manga_name = list(manga_name)
@@ -97,8 +98,7 @@ class Manga(commands.Cog):
 			await self._init_search()
 			return
 
-		with open('text_channels.json', 'r') as f:
-			channels = json.load(f)
+		channels = handler.load_json(JSON_CHANNEL_IDS_FILE)
 
 		if str(reaction.message.channel.id) == channels[str(
 				reaction.message.guild.id)][str(user.id)]:
@@ -109,8 +109,7 @@ class Manga(commands.Cog):
 				await tc_delete.delete()
 				del channels[str(reaction.message.guild.id)][str(user.id)]
 
-				with open('text_channels.json', 'w') as f:
-					json.dump(channels, f, indent=4)
+				handler.dump_json(JSON_CHANNEL_IDS_FILE, channels)
 				return
 
 			elif reaction.emoji in bot_constants.NUMBERS_ONE_TO_FIVE:
@@ -145,7 +144,6 @@ class Manga(commands.Cog):
 						value=x.chapter,
 						inline=False)
 				await reaction.message.edit(embed=embed)
-			print(self.manga_page)
 
 	async def _init_search(self):
 		"""
@@ -172,7 +170,6 @@ class Manga(commands.Cog):
 			await message.add_reaction(bot_constants.NEXT)
 			[await message.add_reaction(v) for v in bot_constants.NUMBERS_ONE_TO_FIVE]
 			await message.add_reaction(bot_constants.RIGHT_WRONG[1])
-		# await self._change_context(created_channel)
 
 	async def _change_context(self, channel):
 		pass
@@ -181,8 +178,8 @@ class Manga(commands.Cog):
 		"""
 				Creates the user-related text-channel
 		"""
-		with open('text_channels.json', 'r') as f:
-			channels = json.load(f)
+
+		channels = handler.load_json(JSON_CHANNEL_IDS_FILE)
 
 		author = self.ctx.author
 
@@ -201,15 +198,9 @@ class Manga(commands.Cog):
 
 		channels[str(self.ctx.guild.id)][str(author.id)] = str(channel.id)
 
-		with open('text_channels.json', 'w') as f:
-			json.dump(channels, f, indent=4)
+		handler.dump_json(JSON_CHANNEL_IDS_FILE, channels)
 
 		return channel
-
-	# e = discord.Embed()
-	# for v in self.manga_df.head().itertuples():
-	# 	e.add_field(name='Capitulo', value=f'{v.chapter:.1f}', inline=False)
-	# await channel.send(embed=e)
 
 
 class Mangadownloader:

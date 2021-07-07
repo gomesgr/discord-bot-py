@@ -4,6 +4,7 @@ from typing import (Optional)
 from discord import (Embed, File, Message)
 
 import distort_images as di
+import json
 
 
 async def distort(ctx, logger: Logger) -> Optional[None]:
@@ -40,7 +41,7 @@ async def send_message(ctx, logger: Logger, content: Optional[str] = None, embed
             ctx.channel,
             content,
             exc_info=False)
-    elif embed is not None and emojis:
+    elif embed is not None:
         message = await ctx.send(embed=embed)
         print(message)
         logger.info(
@@ -59,6 +60,17 @@ async def edit_message(message: Message, logger: Logger, content: Optional[str] 
 
 async def add_reaction(msg: Message, reaction: str):
     await msg.add_reaction(reaction)
+
+
+def dump_json(filename: str, content):
+    with open(filename, 'w') as f:
+        json.dump(content, f, indent=4)
+
+
+def load_json(filename: str):
+    with open(filename, 'r') as f:
+        js = json.load(f)
+    return js
 
 
 if __name__ == '__main__':
