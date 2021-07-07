@@ -38,7 +38,6 @@ class Manga(commands.Cog):
 
 	@tasks.loop(seconds=5.0)
 	async def delete_messages(self):
-		print('eae deletando', self.messages_to_delete)
 		if self.messages_to_delete:
 			await handler.delete_message(self.messages_to_delete.pop(), logger)
 
@@ -92,8 +91,6 @@ class Manga(commands.Cog):
 			bot_constants.NUMBERS_ONE_TO_FIVE[4]: five,
 		}
 		v = funs[reaction.emoji]()
-		print(self.manga_df.head()['chapter'])
-		print(v['value'])
 		print(self.manga_df.loc[self.manga_df['chapter'] == v['value']])
 
 	@commands.Cog.listener()
@@ -105,8 +102,8 @@ class Manga(commands.Cog):
 
 		# reaction.message.id == channels[str(reaction.message.guild)][str(user.id)]
 
-		if self.count == 0 and self.msg_embed_cover_id == reaction.message.id and reaction.emoji == bot_constants.RIGHT_WRONG[0]:
-			self.count = 1
+		if self.msg_embed_cover_id == reaction.message.id and reaction.emoji == bot_constants.RIGHT_WRONG[0]:
+			# self.count = 1
 			try:
 				assert(channels[str(reaction.message.guild.id)][str(user.id)])
 				msg = await handler.send_message(self.ctx, logger, content='Canal Criado')
@@ -119,7 +116,7 @@ class Manga(commands.Cog):
 
 		if str(reaction.message.channel.id) == channels[str(
 				reaction.message.guild.id)][str(user.id)]:
-
+			embed = Embed()
 			# CLOSE
 			if reaction.emoji == bot_constants.RIGHT_WRONG[1]:
 				tc_delete = self.bot.get_channel(int(channels[str(reaction.message.guild.id)][str(user.id)]))
@@ -131,62 +128,64 @@ class Manga(commands.Cog):
 
 			elif reaction.emoji in bot_constants.NUMBERS_ONE_TO_FIVE:
 				self._reactions(reaction)
-				print(self.manga_df)
 
 			# NEXT
 			elif reaction.emoji == bot_constants.NEXT:
-				embed = Embed()
 				embed.title = 'Escolha o capitulo abaixo:'
 				self.manga_page += 1
 				self.items += 5
 
-				for count, x in enumerate(
-						self.manga_df.iloc[self.items - 5:self.items].itertuples()):
-					embed.add_field(
-						name=bot_constants.NUMBERS_ONE_TO_FIVE[count],
-						value=x.chapter,
-						inline=False)
-				await reaction.message.edit(embed=embed)
-
 			# PREVIOUS
 			elif reaction.emoji == bot_constants.PREVIOUS and self.manga_page >= 1:
-				embed = Embed()
 				embed.title = 'Escolha o capitulo abaixo:'
 				self.manga_page -= 1
 				self.items -= 5
-				for count, x in enumerate(
-						self.manga_df.iloc[self.items - 5:self.items].itertuples()):
-					embed.add_field(
-						name=bot_constants.NUMBERS_ONE_TO_FIVE[count],
-						value=x.chapter,
-						inline=False)
-				await reaction.message.edit(embed=embed)
+
+			# LAST
+			elif reaction.emoji == bot_constants.LAST:
+				self.manga_page = 20
+				self.items = 100
+
+			# FIRST
+			elif reaction.emoji == bot_constants.FIRST:
+				self.manga_page = 0
+				self.items = 5
+
+			for count, x in enumerate(self.manga_df.iloc[self.items - 5:self.items].itertuples()):
+				embed.add_field(
+					name=bot_constants.NUMBERS_ONE_TO_FIVE[count],
+					value=x.chapter,
+					inline=False)
+
+			await reaction.message.edit(embed=embed)
+
 
 	async def _init_search(self):
 		"""
 			Starts iteration over manga chapters, creates text channel and adds reactions to message on it
 		"""
-		if self.count == 1:
-			self.manga_df = self.md.init(
-				self.manga['name'], self.manga['uuid'])
-			created_channel = await self._create_text_channel()
-			embed = Embed()
-			embed.title = 'Escolha o capitulo abaixo:'
+		self.manga_df = self.md.init(
+			self.manga['name'], self.manga['uuid'])
+		created_channel = await self._create_text_channel()
+		embed = Embed()
+		embed.title = 'Escolha o capitulo abaixo:'
 
-			first_five = [
-				x.chapter for x in self.manga_df.head().itertuples()]
+		first_five = [
+			x.chapter for x in self.manga_df.head().itertuples()]
 
-			for i in range(5):
-				embed.add_field(
-					name=bot_constants.NUMBERS_ONE_TO_FIVE[i],
-					value=first_five[i],
-					inline=False)
+		for i in range(5):
+			embed.add_field(
+				name=bot_constants.NUMBERS_ONE_TO_FIVE[i],
+				value=first_five[i],
+				inline=False)
 
-			message = await created_channel.send(embed=embed)
-			await message.add_reaction(bot_constants.PREVIOUS)
-			await message.add_reaction(bot_constants.NEXT)
-			[await message.add_reaction(v) for v in bot_constants.NUMBERS_ONE_TO_FIVE]
-			await message.add_reaction(bot_constants.RIGHT_WRONG[1])
+		message = await created_channel.send(embed=embed)
+		await message.add_reaction(bot_constants.FIRST)
+		await message.add_reaction(bot_constants.PREVIOUS)
+		await message.add_reaction(bot_constants.NEXT)
+		await message.add_reaction(bot_constants.LAST)
+		[await message.add_reaction(v) for v in bot_constants.NUMBERS_ONE_TO_FIVE]
+		await message.add_reaction(bot_constants.RIGHT_WRONG[1])
 
 	async def _change_context(self, channel):
 		pass
