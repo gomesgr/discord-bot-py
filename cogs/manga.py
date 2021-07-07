@@ -8,7 +8,8 @@ import handler
 import bot_constants
 import pandas as pd
 from discord.ext import commands, tasks
-from discord import TextChannel, Embed, PermissionOverwrite, utils, Message
+from discord import TextChannel, Embed, PermissionOverwrite, utils, File
+import shutil
 
 logger = getLogger('manga')
 # pd.options.display.float_format = '{:.1f}'.format
@@ -65,7 +66,17 @@ class Manga(commands.Cog):
 		self.ctx = ctx
 		[await handler.add_reaction(msg, reaction) for reaction in bot_constants.RIGHT_WRONG]
 
-	def _reactions(self, reaction):
+	async def _send_chapters(self, reaction, chapter_number):
+		self.md.init(self.manga['name'], self.manga['uuid'], chapter=chapter_number, download=True)
+		print(self.md.saved_chapters)
+		for file in self.md.saved_chapters:
+			print(file)
+			with open(file, 'rb') as f:
+				chapter = File(f)
+				await reaction.message.channel.send(file=chapter)
+		self.md.saved_chapters.clear()
+
+	def _reactions(self, reaction) -> str:
 		embed = reaction.message.embeds[0]
 
 		def one():
@@ -91,7 +102,8 @@ class Manga(commands.Cog):
 			bot_constants.NUMBERS_ONE_TO_FIVE[4]: five,
 		}
 		v = funs[reaction.emoji]()
-		print(self.manga_df.loc[self.manga_df['chapter'] == v['value']])
+		# self.manga_df.loc[self.manga_df['chapter'] == v['value']]
+		return v['value']
 
 	@commands.Cog.listener()
 	async def on_reaction_add(self, reaction, user):
@@ -114,20 +126,24 @@ class Manga(commands.Cog):
 				await self._init_search()
 				return
 
-		if str(reaction.message.channel.id) == channels[str(
-				reaction.message.guild.id)][str(user.id)]:
+		if str(reaction.message.channel.id) == channels[str(reaction.message.guild.id)][str(user.id)]:
 			embed = Embed()
+
 			# CLOSE
 			if reaction.emoji == bot_constants.RIGHT_WRONG[1]:
 				tc_delete = self.bot.get_channel(int(channels[str(reaction.message.guild.id)][str(user.id)]))
 				await tc_delete.delete()
 				del channels[str(reaction.message.guild.id)][str(user.id)]
+				self.md.saved_chapters.clear()
+				shutil.rmtree(self.md.manga_name)
 
 				handler.dump_json(JSON_CHANNEL_IDS_FILE, channels)
 				return
 
 			elif reaction.emoji in bot_constants.NUMBERS_ONE_TO_FIVE:
-				self._reactions(reaction)
+				chapter = self._reactions(reaction)
+				await self._send_chapters(reaction, chapter)
+				return
 
 			# NEXT
 			elif reaction.emoji == bot_constants.NEXT:
@@ -158,7 +174,6 @@ class Manga(commands.Cog):
 					inline=False)
 
 			await reaction.message.edit(embed=embed)
-
 
 	async def _init_search(self):
 		"""
@@ -225,6 +240,8 @@ class Mangadownloader:
 	"""
 
 	def __init__(self):
+		self.saved_chapters: List[str] = []
+
 		self.manga_name: Optional[str] = ''
 		self.manga_id: Optional[str] = ''
 
@@ -272,7 +289,8 @@ class Mangadownloader:
 			manga_id: str,
 			lang: Optional[str] = 'en',
 			offset: Optional[int] = 0,
-			chapter: Optional[str] = ''):
+			chapter: Optional[str] = '',
+			download: Optional[bool] = False):
 		"""
 				Initial method if not given values on true __init__
 				:param manga_name: this shall be used as foldername to download the chapters
@@ -285,6 +303,8 @@ class Mangadownloader:
 				:type chapter: str
 				:param offset: which chapter should the search begin from (not completely precise since mangas have bronken chapters as such: [10.2, 10.5, etc])
 				:type offset: int
+				:param download: boolean to tell if i want to download the chapters or not
+				:type download: bool
 		"""
 		self.manga_name = manga_name
 		self.manga_id = manga_id
@@ -294,7 +314,9 @@ class Mangadownloader:
 			self.full_url = f'{self.apiurl}/chapter?manga={self.manga_id}&translatedLanguage[]={lang}&chapter={chapter}'
 		self._save_response()
 		self._save_chapters()
-		# self._loop_through_chapters()
+		print(self.full_url)
+		if download:
+			self._loop_through_chapters()
 		return self.df
 
 	def _write_pages(self, chapter: Dict):
@@ -307,6 +329,7 @@ class Mangadownloader:
 		for count, page in enumerate(chapter.data):
 			extension = page[-4:]
 			file = f'{self.manga_name}\\{chapter.chapter}\\Page {count}{extension}'
+			self.saved_chapters.append(file)
 			if not os.path.isfile(file):
 				rsp = requests.get(self.final_url.format(chapter.hash, page))
 				with open(file, 'wb') as f:
@@ -370,6 +393,9 @@ class Mangadownloader:
 			elif len(spl[0]) < 4:
 				self.df['chapter'][i] = self.df['chapter'][i][0:5]
 
+			if self.df['chapter'][i][-1] == '0':
+				self.df['chapter'][i] = self.df['chapter'][i][:-2]
+
 	def _save_response(self):
 		"""
 				Saves all the json reponse from the api into a json object
@@ -390,7 +416,7 @@ class Mangadownloader:
 		"""
 		from re import sub
 		self.manga_name = sub(
-			'[-!$%^&*()_+|~=`{}[]:";\'<>?,./]',
+			r'[^\w]',
 			'',
 			self.manga_name)
 
