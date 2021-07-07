@@ -21,21 +21,21 @@ async def distort(ctx, logger: Logger) -> Optional[None]:
 
 async def send_message(ctx, logger: Logger, content: Optional[str] = None, embed: Optional[Embed] = None, file: Optional[File] = None, emojis: Optional[bool] = False) -> Optional[Message]:
     if file is not None:
-        await ctx.channel.send(file=file)
+        message = await ctx.channel.send(file=file)
         logger.info(
             'Message sent on %s: %s',
             ctx.channel,
             file,
             exc_info=False)
     elif embed is not None and not emojis:
-        await ctx.channel.send(embed=embed)
+        message = await ctx.channel.send(embed=embed)
         logger.info(
             'Message sent on %s: %s',
             ctx.channel,
             embed,
             exc_info=False)
     elif content is not None:
-        await ctx.channel.send(content)
+        message = await ctx.channel.send(content)
         logger.info(
             'Message sent on %s: %s',
             ctx.channel,
@@ -49,13 +49,18 @@ async def send_message(ctx, logger: Logger, content: Optional[str] = None, embed
             ctx.channel,
             embed,
             exc_info=False)
-        return message
+    return message
 
 
 async def edit_message(message: Message, logger: Logger, content: Optional[str] = None, embed: Optional[Embed] = None, file: Optional[File] = None) -> Optional[None]:
     if embed is not None:
         logger.info('Message %s edited on %s', str(message.id), message.channel, exc_info=False)
         await message.edit(embed=embed)
+
+
+async def delete_message(message: Message, logger: Logger):
+    await message.delete()
+    logger.info(f'Message <{message.id}> deleted ')
 
 
 async def add_reaction(msg: Message, reaction: str):

@@ -7,8 +7,8 @@ import json
 import handler
 import bot_constants
 import pandas as pd
-from discord.ext import commands
-from discord import TextChannel, Embed, PermissionOverwrite, utils
+from discord.ext import commands, tasks
+from discord import TextChannel, Embed, PermissionOverwrite, utils, Message
 
 logger = getLogger('manga')
 # pd.options.display.float_format = '{:.1f}'.format
@@ -34,11 +34,20 @@ class Manga(commands.Cog):
 		self.users_using: Dict[str, int] = {}
 		self.items = 5
 
+		self.messages_to_delete: List[str] = []
+
+	@tasks.loop(seconds=5.0)
+	async def delete_messages(self):
+		print('eae deletando', self.messages_to_delete)
+		if self.messages_to_delete:
+			await handler.delete_message(self.messages_to_delete.pop(), logger)
+
 	@commands.Cog.listener()
 	async def on_ready(self):
 		message = 'Cog Manga ready'
 		print(message)
 		logger.info(message)
+		self.delete_messages.start()
 
 	@commands.command(name=bot_constants.MANGA_SEARCH, aliases=bot_constants.MANGA_SEARCH_ALIASES)
 	async def mangasearch(self, ctx: commands.Context, *manga_name: str):
@@ -92,13 +101,21 @@ class Manga(commands.Cog):
 		if user.bot:
 			return
 
-		if (self.count == 0 and self.msg_embed_cover_id == reaction.message.id and
-				reaction.emoji == bot_constants.RIGHT_WRONG[0]):
-			self.count = 1
-			await self._init_search()
-			return
-
 		channels = handler.load_json(JSON_CHANNEL_IDS_FILE)
+
+		# reaction.message.id == channels[str(reaction.message.guild)][str(user.id)]
+
+		if self.count == 0 and self.msg_embed_cover_id == reaction.message.id and reaction.emoji == bot_constants.RIGHT_WRONG[0]:
+			self.count = 1
+			try:
+				assert(channels[str(reaction.message.guild.id)][str(user.id)])
+				msg = await handler.send_message(self.ctx, logger, content='Canal Criado')
+				self.messages_to_delete.append(msg)
+				print(self.messages_to_delete)
+				return
+			except KeyError:
+				await self._init_search()
+				return
 
 		if str(reaction.message.channel.id) == channels[str(
 				reaction.message.guild.id)][str(user.id)]:
