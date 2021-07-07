@@ -49,10 +49,23 @@ async def on_guild_join(guild) -> Optional[None]:
     with open('prefixes.json', 'r') as p:
         prefixes = json.load(p)
 
+    with open('text_channels.json', 'r') as f:
+        channels = json.load(f)
+
+    channels[str(guild.id)] = {}
+
     prefixes[str(guild.id)] = bot_constants.PREFIX
 
     with open('prefixes.json', 'w') as p:
         json.dump(prefixes, p, indent=4)
+
+    with open('text_channels.json', 'w') as f:
+        json.dump(channels, f, indent=4)
+
+
+# @diclient.event
+# async def on_error(event, *_, **__):
+#     print(event, _, __)
 
 
 # Cogs
@@ -82,7 +95,9 @@ async def reload(ctx: commands.Context, extension: str):
 
 
 @diclient.event
-async def on_command_error(ctx: commands.Context, _):
+async def on_command_error(ctx: commands.Context, ex):
+
+    print(f'{ex=}')
 
     @load.error
     async def on_load_error(ctx: commands.Context, _):
