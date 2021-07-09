@@ -54,7 +54,8 @@ async def send_message(ctx, logger: Logger, content: Optional[str] = None, embed
 
 async def edit_message(message: Message, logger: Logger, content: Optional[str] = None, embed: Optional[Embed] = None, file: Optional[File] = None) -> Optional[None]:
     if embed is not None:
-        logger.info('Message %s edited on %s', str(message.id), message.channel, exc_info=False)
+        logger.info('Message %s edited on %s', str(
+            message.id), message.channel, exc_info=False)
         await message.edit(embed=embed)
 
 
@@ -76,6 +77,11 @@ def load_json(filename: str):
     with open(filename, 'r') as f:
         js = json.load(f)
     return js
+
+
+def log(logger: Logger, content: str, object: Optional = ''):
+    content += ' %s'
+    logger.info(content, object, exc_info=False)
 
 
 if __name__ == '__main__':

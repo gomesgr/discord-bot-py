@@ -54,6 +54,7 @@ class Jokenpo:
                 embed.description = 'Mentes brilhantes pensam igual, foi um empate!'
                 embed.colour = Colour.orange()
             await handler.edit_message(message, logger, embed=embed)
+            handler.log(logger, 'Message edited:', message)
 
 
 def not_bot(ctx: commands.Context) -> bool:
@@ -69,7 +70,8 @@ class Game(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         message = 'Cog Game ready'
-        logger.info(message)
+        handler.log(logger, message)
+        # logger.info(message)
         print(message)
 
     @commands.command(name=bot_constants.JOKENPO,

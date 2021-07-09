@@ -8,11 +8,10 @@ import handler
 import bot_constants
 import pandas as pd
 from discord.ext import commands, tasks
-from discord import TextChannel, Embed, PermissionOverwrite, utils, File
+from discord import TextChannel, Embed, PermissionOverwrite, utils, File, Reaction, User, Member
 import shutil
 
 logger = getLogger('manga')
-# pd.options.display.float_format = '{:.1f}'.format
 
 JSON_CHANNEL_IDS_FILE = 'text_channels.json'
 
@@ -49,7 +48,8 @@ class Manga(commands.Cog):
 		logger.info(message)
 		self.delete_messages.start()
 
-	@commands.command(name=bot_constants.MANGA_SEARCH, aliases=bot_constants.MANGA_SEARCH_ALIASES)
+	@commands.command(name=bot_constants.MANGA_SEARCH,
+					  aliases=bot_constants.MANGA_SEARCH_ALIASES)
 	async def mangasearch(self, ctx: commands.Context, *manga_name: str):
 		self.count = 0
 		manga_name = list(manga_name)
@@ -67,7 +67,11 @@ class Manga(commands.Cog):
 		[await handler.add_reaction(msg, reaction) for reaction in bot_constants.RIGHT_WRONG]
 
 	async def _send_chapters(self, reaction, chapter_number):
-		self.md.init(self.manga['name'], self.manga['uuid'], chapter=chapter_number, download=True)
+		self.md.init(
+			self.manga['name'],
+			self.manga['uuid'],
+			chapter=chapter_number,
+			download=True)
 		print(self.md.saved_chapters)
 		for file in self.md.saved_chapters:
 			print(file)
@@ -77,6 +81,11 @@ class Manga(commands.Cog):
 		self.md.saved_chapters.clear()
 
 	def _reactions(self, reaction) -> str:
+		"""
+        Checks the reaction and binds it to a function that returns the number of the chosen chapter
+        :param reaction: the reaction that is being checked
+        :type reaction: Reaction
+		"""
 		embed = reaction.message.embeds[0]
 
 		def one():
@@ -102,22 +111,18 @@ class Manga(commands.Cog):
 			bot_constants.NUMBERS_ONE_TO_FIVE[4]: five,
 		}
 		v = funs[reaction.emoji]()
-		# self.manga_df.loc[self.manga_df['chapter'] == v['value']]
 		return v['value']
 
 	@commands.Cog.listener()
-	async def on_reaction_add(self, reaction, user):
+	async def on_reaction_add(self, reaction, user) -> None:
+		channels = handler.load_json(JSON_CHANNEL_IDS_FILE)
 		if user.bot:
 			return
 
-		channels = handler.load_json(JSON_CHANNEL_IDS_FILE)
-
-		# reaction.message.id == channels[str(reaction.message.guild)][str(user.id)]
-
-		if self.msg_embed_cover_id == reaction.message.id and reaction.emoji == bot_constants.RIGHT_WRONG[0]:
-			# self.count = 1
+		if self.msg_embed_cover_id == reaction.message.id and reaction.emoji == bot_constants.RIGHT_WRONG[
+			0]:
 			try:
-				assert(channels[str(reaction.message.guild.id)][str(user.id)])
+				assert (channels[str(reaction.message.guild.id)][str(user.id)])
 				msg = await handler.send_message(self.ctx, logger, content='Canal Criado')
 				self.messages_to_delete.append(msg)
 				print(self.messages_to_delete)
@@ -126,48 +131,12 @@ class Manga(commands.Cog):
 				await self._init_search()
 				return
 
-		if str(reaction.message.channel.id) == channels[str(reaction.message.guild.id)][str(user.id)]:
+		if str(reaction.message.channel.id) == channels[str(
+				reaction.message.guild.id)][str(user.id)]:
 			embed = Embed()
-
-			# CLOSE
-			if reaction.emoji == bot_constants.RIGHT_WRONG[1]:
-				tc_delete = self.bot.get_channel(int(channels[str(reaction.message.guild.id)][str(user.id)]))
-				await tc_delete.delete()
-				del channels[str(reaction.message.guild.id)][str(user.id)]
-				self.md.saved_chapters.clear()
-				shutil.rmtree(self.md.manga_name)
-
-				handler.dump_json(JSON_CHANNEL_IDS_FILE, channels)
-				return
-
-			elif reaction.emoji in bot_constants.NUMBERS_ONE_TO_FIVE:
-				chapter = self._reactions(reaction)
-				await self._send_chapters(reaction, chapter)
-				return
-
-			# NEXT
-			elif reaction.emoji == bot_constants.NEXT:
-				embed.title = 'Escolha o capitulo abaixo:'
-				self.manga_page += 1
-				self.items += 5
-
-			# PREVIOUS
-			elif reaction.emoji == bot_constants.PREVIOUS and self.manga_page >= 1:
-				embed.title = 'Escolha o capitulo abaixo:'
-				self.manga_page -= 1
-				self.items -= 5
-
-			# LAST
-			elif reaction.emoji == bot_constants.LAST:
-				self.manga_page = 20
-				self.items = 100
-
-			# FIRST
-			elif reaction.emoji == bot_constants.FIRST:
-				self.manga_page = 0
-				self.items = 5
-
-			for count, x in enumerate(self.manga_df.iloc[self.items - 5:self.items].itertuples()):
+			await self._check_reaction_for_manga(reaction, user, embed, channels)
+			for count, x in enumerate(
+					self.manga_df.iloc[self.items - 5:self.items].itertuples()):
 				embed.add_field(
 					name=bot_constants.NUMBERS_ONE_TO_FIVE[count],
 					value=x.chapter,
@@ -175,10 +144,61 @@ class Manga(commands.Cog):
 
 			await reaction.message.edit(embed=embed)
 
+	async def _check_reaction_for_manga(self, reaction: Reaction, user: Union[User, Member], embed: Embed,
+										channels: Dict[str, str]) -> None:
+		"""
+        Checks for the reaction of the user to find the next step of the manga reader
+        :param reaction: The reaction to which the user reacted
+        :type reaction: Reaction
+        :param user: The user that reacted to the message
+        :type user: Union[User, Member]
+        :param embed: The chapter chooser embed which has to be edited every time the user reacts to the message
+        :type embed: Embed
+        :param channels: the json file containing the channels created for manga reading
+        :type channels: Dict[str, str]
+		"""
+		# CLOSE
+		if reaction.emoji == bot_constants.RIGHT_WRONG[1]:
+			tc_delete = self.bot.get_channel(
+				int(channels[str(reaction.message.guild.id)][str(user.id)]))
+			await tc_delete.delete()
+			del channels[str(reaction.message.guild.id)][str(user.id)]
+			self.md.saved_chapters.clear()
+			shutil.rmtree(self.md.manga_name)
+
+			handler.dump_json(JSON_CHANNEL_IDS_FILE, channels)
+
+		# CHAPTER NUMBER (1-5)
+		elif reaction.emoji in bot_constants.NUMBERS_ONE_TO_FIVE:
+			chapter = self._reactions(reaction)
+			await self._send_chapters(reaction, chapter)
+
+		# NEXT
+		elif reaction.emoji == bot_constants.NEXT:
+			embed.title = 'Escolha o capitulo abaixo:'
+			self.manga_page += 1
+			self.items += 5
+
+		# PREVIOUS
+		elif reaction.emoji == bot_constants.PREVIOUS and self.manga_page >= 1:
+			embed.title = 'Escolha o capitulo abaixo:'
+			self.manga_page -= 1
+			self.items -= 5
+
+		# LAST
+		elif reaction.emoji == bot_constants.LAST:
+			self.manga_page = 20
+			self.items = 100
+
+		# FIRST
+		elif reaction.emoji == bot_constants.FIRST:
+			self.manga_page = 0
+			self.items = 5
+
 	async def _init_search(self):
 		"""
-			Starts iteration over manga chapters, creates text channel and adds reactions to message on it
-		"""
+                Starts iteration over manga chapters, creates text channel and adds reactions to message on it
+                """
 		self.manga_df = self.md.init(
 			self.manga['name'], self.manga['uuid'])
 		created_channel = await self._create_text_channel()
@@ -205,10 +225,10 @@ class Manga(commands.Cog):
 	async def _change_context(self, channel):
 		pass
 
-	async def _create_text_channel(self):
+	async def _create_text_channel(self) -> TextChannel:
 		"""
-				Creates the user-related text-channel
-		"""
+        Creates the user-related text-channel
+"""
 
 		channels = handler.load_json(JSON_CHANNEL_IDS_FILE)
 
@@ -236,8 +256,8 @@ class Manga(commands.Cog):
 
 class Mangadownloader:
 	"""
-			Downloads given manga chapters using maximum quality (data) from mangadex api. (limited to 100 chapters)
-	"""
+Downloads given manga chapters using maximum quality (data) from mangadex api. (limited to 100 chapters)
+"""
 
 	def __init__(self):
 		self.saved_chapters: List[str] = []
@@ -265,13 +285,13 @@ class Mangadownloader:
 
 	def search(self, manga: List[str]) -> Tuple[str, str, str]:
 		"""
-				Look for a manga
-				:param manga: the given string list that might represent a full manga (to be used as search token)
-				:type manga: List[str]
-				:return: A tuple with three values, the first being the id of the found manga, the second, the english
-				name of it and the third one the cover art filename
-				:rtype: Tuple[str, str]
-		"""
+        Look for a manga
+        :param manga: the given string list that might represent a full manga (to be used as search token)
+        :type manga: List[str]
+        :return: A tuple with three values, the first being the id of the found manga, the second, the english
+        name of it and the third one the cover art filename
+        :rtype: Tuple[str, str]
+"""
 		manga = '%20'.join(manga)
 		url = f'{self.apiurl}/manga?title={manga}'
 		rsp = requests.get(url).content
@@ -292,20 +312,20 @@ class Mangadownloader:
 			chapter: Optional[str] = '',
 			download: Optional[bool] = False):
 		"""
-				Initial method if not given values on true __init__
-				:param manga_name: this shall be used as foldername to download the chapters
-				:type manga_name: Union[str, bytes, _PathLike[str], _PathLike[bytes]]
-				:param manga_id: the uuid from the manga (obtainable through search method)
-				:type manga_id: str
-				:param lang: language of the manga (mostly will be 'en')
-				:type lang: str
-				:param chapter: the specific chapter i am looking for
-				:type chapter: str
-				:param offset: which chapter should the search begin from (not completely precise since mangas have bronken chapters as such: [10.2, 10.5, etc])
-				:type offset: int
-				:param download: boolean to tell if i want to download the chapters or not
-				:type download: bool
-		"""
+                                Initial method if not given values on true __init__
+                                :param manga_name: this shall be used as foldername to download the chapters
+                                :type manga_name: Union[str, bytes, _PathLike[str], _PathLike[bytes]]
+                                :param manga_id: the uuid from the manga (obtainable through search method)
+                                :type manga_id: str
+                                :param lang: language of the manga (mostly will be 'en')
+                                :type lang: str
+                                :param chapter: the specific chapter i am looking for
+                                :type chapter: str
+                                :param offset: which chapter should the search begin from (not completely precise since mangas have bronken chapters as such: [10.2, 10.5, etc])
+                                :type offset: int
+                                :param download: boolean to tell if i want to download the chapters or not
+                                :type download: bool
+"""
 		self.manga_name = manga_name
 		self.manga_id = manga_id
 		if not chapter:
@@ -321,11 +341,11 @@ class Mangadownloader:
 
 	def _write_pages(self, chapter: Dict):
 		"""
-				Writes the received chapters into the disk
-				:param chapter: A pandas tuple that contains all the information there is to know about a single chapter from
-				a manga, being the most important ones: chapter, data and hash
-				:type chapter: Dict[Any, ...]
-		"""
+                                Writes the received chapters into the disk
+                                :param chapter: A pandas tuple that contains all the information there is to know about a single chapter from
+                                a manga, being the most important ones: chapter, data and hash
+                                :type chapter: Dict[Any]
+"""
 		for count, page in enumerate(chapter.data):
 			extension = page[-4:]
 			file = f'{self.manga_name}\\{chapter.chapter}\\Page {count}{extension}'
@@ -334,24 +354,26 @@ class Mangadownloader:
 				rsp = requests.get(self.final_url.format(chapter.hash, page))
 				with open(file, 'wb') as f:
 					f.write(rsp.content)
-					print(f'Saved: <{file}>')
+					handler.log(logger, 'Saved', file)
+					# logger.info(f'Saved: <{file}>')
 			else:
-				print(f'{file} Exists')
+				handler.log(logger, 'Exists', file)
+				# print(f'{file} Exists')
 
 	def _loop_through_chapters(self):
 		for chapter in self.df.itertuples():
 			self._make_folders(chapter_row=chapter)
 			self._write_pages(chapter)
 
-	def _save_chapters(self):
+	def _save_chapters(self) -> Optional[None]:
 		"""
-				Transforms the json object into a iterable object and then into a pandas DataFrame for better finding and
-				positioning of all the chapters (it can be transformed into a csv for better human viewing but there's no
-				computational need for that)
-		"""
-
+                                Transforms the json object into a iterable object and then into a pandas DataFrame for better finding and
+                                positioning of all the chapters (it can be transformed into a csv for better human viewing but there's no
+                                computational need for that)
+"""
 		if not self.json_chapters['results']:
 			return
+
 		self.chapters = next(iter(self.json_chapters.values()))
 		flattened_dict = pd.json_normalize(self.chapters, sep='.')
 		full_dict = flattened_dict.to_dict(orient='records')
@@ -366,7 +388,8 @@ class Mangadownloader:
 		self.df = self.df.drop('relationships', axis=1)
 		self.df = self.df.drop('result', axis=1)
 
-		self.df['data.attributes.chapter'] = pd.to_numeric(self.df['data.attributes.chapter'], downcast='float')
+		self.df['data.attributes.chapter'] = pd.to_numeric(
+			self.df['data.attributes.chapter'], downcast='float')
 		self.df.sort_values(by=['data.attributes.chapter'], inplace=True)
 
 		column_names = [
@@ -398,22 +421,24 @@ class Mangadownloader:
 
 	def _save_response(self):
 		"""
-				Saves all the json reponse from the api into a json object
-		"""
+                                Saves all the json reponse from the api into a json object
+"""
 		manga = requests.get(self.full_url)
 		self.json_chapters = json.loads(manga.text)
 
 	def _make_folders(
 			self,
 			foldername: Optional[str] = 'cover',
-			chapter_row=None):
+			chapter_row=None) -> str:
 		"""
-				Makes all the needed folders: manga_name -> chapter_number
-				:param foldername: name of a specific folder to be created
-				:type foldername: str
-				:param chapter_row: the chapter row containing all the needed data
-				:type: Dict
-		"""
+                                Makes all the needed folders: manga_name -> chapter_number
+                                :param foldername: name of a specific folder to be created
+                                :type foldername: str
+                                :param chapter_row: the chapter row from dataframe containing all the needed data
+                                :type: Dict
+                                :return: manga file path to save chapters
+                                :rtype: str
+"""
 		from re import sub
 		self.manga_name = sub(
 			r'[^\w]',
