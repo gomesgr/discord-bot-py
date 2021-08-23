@@ -14,6 +14,7 @@ PING_ALIASES = ('p', 'pingue')
 
 DISTORT = 'distorcer'
 DISTORT_ALIASES = ('dist', 'd')
+
 # Prefixo
 PREFIX = 'k'
 CHANGE_PREFIX = 'changeprefix'
@@ -61,8 +62,12 @@ JOKENPO_PIECES = ['\U0001faa8', '\U0001f9fb', '\u2702\uFE0F']
 MANGA_SEARCH = 'mangasearch'
 MANGA_SEARCH_ALIASES = ('ms', 'msearch', 'procurarmanga')
 
-# Emojis
+# Memes
+## Spongebob
+MEMES_SPONGEBOB = 'sponge'
+MEMES_SPONGEBOB_ALIASES = ('sp', 'spng', 'trash')
 
+# Emojis
 RIGHT_WRONG = ['\u2705', '\u274C']
 
 FIRST = '\u23EE\uFE0F'
