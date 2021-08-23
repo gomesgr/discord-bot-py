@@ -134,3 +134,6 @@ dmypy.json
 # Directories
 .vscode
 .logs
+
+# Specific files
+apply_autopep8.ps1
